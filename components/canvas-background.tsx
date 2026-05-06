@@ -13,6 +13,18 @@ import {
   drawNeonField,
   type NeonFieldState,
 } from "./neon-field";
+import {
+  createSolarSystem,
+  updateSolarSystem,
+  drawSolarSystem,
+  type SolarSystemState,
+} from "./solar-system-scene";
+import {
+  createGlobe,
+  updateGlobe,
+  drawGlobe,
+  type GlobeState,
+} from "./globe-scene";
 
 // ---- Types ----
 
@@ -23,7 +35,14 @@ interface LineSegment {
   y2: number;
 }
 
-type SceneMode = "draw" | "bounce" | "revenge" | "aquarium" | "neonField";
+type SceneMode =
+  | "draw"
+  | "bounce"
+  | "revenge"
+  | "aquarium"
+  | "neonField"
+  | "solarSystem"
+  | "globe";
 interface Scene {
   name: string;
   mode: SceneMode;
@@ -461,8 +480,22 @@ export function CanvasBackground() {
         speed: 0,
         lines: [],
       },
+      {
+        name: "solarSystem",
+        mode: "solarSystem",
+        color: "#ffaa00",
+        speed: 0,
+        lines: [],
+      },
+      {
+        name: "globe",
+        mode: "globe",
+        color: "#00ffcc",
+        speed: 0,
+        lines: [],
+      },
     ];
-    const scene = allScenes[Math.floor(Math.random() * allScenes.length)];
+    let scene = allScenes[Math.floor(Math.random() * allScenes.length)];
 
     // Draw-mode state
     let lineIdx = 0;
@@ -504,6 +537,12 @@ export function CanvasBackground() {
 
     // ---- Neon Field state ----
     let neonFieldState: NeonFieldState | null = null;
+
+    // ---- Solar System state ----
+    let solarSystemState: SolarSystemState | null = null;
+
+    // ---- Globe state ----
+    let globeState: GlobeState | null = null;
 
     // ---- Aquarium state ----
     const neonBlades: NeonBlade[] = [];
@@ -563,6 +602,12 @@ export function CanvasBackground() {
         dvdvy = isMobile ? 40 + Math.random() * 20 : 60 + Math.random() * 30;
         dvdx = Math.max(0, Math.min(dvdx, w - DVD_LOGOW));
         dvdy = Math.max(0, Math.min(dvdy, h - DVD_LOGOH));
+      }
+      if (scene.mode === "solarSystem" && solarSystemState) {
+        solarSystemState = createSolarSystem(w, h);
+      }
+      if (scene.mode === "globe" && globeState) {
+        globeState = createGlobe(w, h);
       }
     }
 
@@ -1712,6 +1757,20 @@ export function CanvasBackground() {
         return;
       }
 
+      if (scene.mode === "solarSystem" && solarSystemState) {
+        solarSystemState.w = w;
+        solarSystemState.h = h;
+        updateSolarSystem(solarSystemState, dt);
+        drawSolarSystem(solarSystemState, ctx!);
+        return;
+      }
+
+      if (scene.mode === "globe" && globeState) {
+        updateGlobe(globeState, dt);
+        drawGlobe(globeState, ctx!);
+        return;
+      }
+
       if (scene.mode === "aquarium") {
         const tSec = time / 1000;
         updateAquarium(dt, tSec);
@@ -1818,11 +1877,67 @@ export function CanvasBackground() {
       revengeState = createRevengeScene(w, h);
     }
     if (scene.mode === "neonField") neonFieldState = createNeonField(w, h);
+    if (scene.mode === "solarSystem")
+      solarSystemState = createSolarSystem(w, h);
+    if (scene.mode === "globe") globeState = createGlobe(w, h);
     if (scene.mode === "aquarium") initAquarium();
+
+    // ---- Scene picker event handling ----
+    function respondWithScenes() {
+      window.dispatchEvent(
+        new CustomEvent("blooshoo:scenes-list", {
+          detail: {
+            scenes: allScenes.map((s) => ({
+              name: s.name,
+              mode: s.mode,
+              color: s.color,
+            })),
+            current: scene.mode,
+          },
+        }),
+      );
+    }
+
+    function switchToScene(mode: string) {
+      const found = allScenes.find((s) => s.mode === mode);
+      if (!found) return;
+      scene = found;
+      // Reset draw-mode state
+      lineIdx = 0;
+      lineProgress = 0;
+      sceneAlpha = 1;
+      holdTimer = 0;
+      fadingOut = false;
+      trailGhosts.length = 0;
+      wakePoints.length = 0;
+      sparks.length = 0;
+      droplets.length = 0;
+      // Null out all scene states
+      revengeState = null;
+      neonFieldState = null;
+      solarSystemState = null;
+      globeState = null;
+      // Init the selected scene
+      if (mode === "revenge") revengeState = createRevengeScene(w, h);
+      if (mode === "neonField") neonFieldState = createNeonField(w, h);
+      if (mode === "solarSystem") solarSystemState = createSolarSystem(w, h);
+      if (mode === "globe") globeState = createGlobe(w, h);
+      if (mode === "aquarium") initAquarium();
+      respondWithScenes();
+    }
+
+    function handleSwitchScene(e: Event) {
+      switchToScene((e as CustomEvent).detail.mode);
+    }
+
+    window.addEventListener("blooshoo:request-scenes", respondWithScenes);
+    window.addEventListener("blooshoo:switch-scene", handleSwitchScene);
     window.addEventListener("resize", resize);
     animId = requestAnimationFrame(tick);
 
     return () => {
+      window.removeEventListener("blooshoo:request-scenes", respondWithScenes);
+      window.removeEventListener("blooshoo:switch-scene", handleSwitchScene);
       window.removeEventListener("resize", resize);
       cancelAnimationFrame(animId);
     };

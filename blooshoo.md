@@ -146,9 +146,9 @@ Docker.
 
 ## Canvas Background Animation
 
-Full-screen HTML5 canvas behind everything (z-0). One scene randomly picked per page load from 7 active scenes (Revenge is out of rotation — needs polish).
+Full-screen HTML5 canvas behind everything (z-0). One scene randomly picked per page load from 8 active scenes (Revenge is out of rotation — needs polish).
 
-**Files:** `components/canvas-background.tsx` (main), `components/neon-field.ts`, `components/revenge-scene.ts`
+**Files:** `components/canvas-background.tsx` (main), `components/neon-field.ts`, `components/revenge-scene.ts`, `components/solar-system-scene.ts`
 
 > **For canvas work:** see [`canvastuff.md`](canvastuff.md) for full per-scene specs, implementation details, performance rules, and the LLM editor note about `canvas-background.tsx`.
 

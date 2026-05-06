@@ -3,7 +3,7 @@
 Full-screen HTML5 canvas behind everything (z-0). One scene randomly picked per page load. All lines use `shadowBlur` glow + white core line. Drawing speeds 160–800 px/sec.
 
 **Main file:** `components/canvas-background.tsx` (~1850 lines)
-**Scene modules:** `components/neon-field.ts`, `components/revenge-scene.ts`
+**Scene modules:** `components/neon-field.ts`, `components/revenge-scene.ts`, `components/solar-system-scene.ts`, `components/globe-scene.ts`
 
 > **⚠️ LLM note:** The Edit tool in diff mode has been observed to fail on `canvas-background.tsx` even with exact match strings. If you hit this, spawn a sub-agent (fresh tool context fixes it) or use `sed` for targeted line replacements.
 
@@ -20,6 +20,8 @@ Full-screen HTML5 canvas behind everything (z-0). One scene randomly picked per 
 | DVD bounce | Random neon | In rotation | "BLOO / SHOO" bounces, wake trail, drops O's, sparks |
 | Neon Field | Multi | In rotation | Bioluminescent grass, perspective projection, wind gusts, pollen |
 | Aquarium | Teal `#00ffcc` | In rotation | Underwater world, 7 animated layers |
+| Solar System | Amber `#ffaa00` | In rotation | 8 planets, asteroid belt, 7 random events |
+| Wireframe Globe | Teal `#00ffcc` | In rotation | Low-orbit Earth, 7 continents, city lights, cloud layer, 3 satellites, 3 planes |
 | Revenge | Teal + Red | **Out of rotation** | Add `revenge` entry to `allScenes` array to re-enable |
 
 ---
@@ -151,4 +153,130 @@ Living underwater world, 7 layers drawn back-to-front on `#0a0a0f` canvas.
 
 7. **Surface light rays** (5) — thin trapezoids (2px top, 8px bottom), ~40% canvas height, gradient `rgba(100,220,255,0.06)` → transparent. Sway ±15px over 8–14s periods. No shadowBlur — intentionally subtle.
 
-**Performance:** dt capped 0.05s. All arrays pre-allocated at init. Indexed `for` loops. `shadowBlur` zeroed after every glow draw.
+do we**Performance:** dt capped 0.05s. All arrays pre-allocated at init. Indexed `for` loops. `shadowBlur` zeroed after every glow draw.
+
+---
+
+## Solar System Scene
+
+**File:** `components/solar-system-scene.ts` — exports `createSolarSystem(w,h)`, `updateSolarSystem(state,dt)`, `drawSolarSystem(state,ctx)`, `SolarSystemState`.
+
+Isometric top-down solar system with 8 orbiting planets, asteroid belt, and 7 random chaotic events. All positions computed from canvas center — **recreates on window resize** to keep the sun centered.
+
+**Isometric tilt:** All orbits drawn as ellipses with `ORBIT_Y_SQUISH = 0.85` for subtle 3D depth. Saturn rings use `ctx.ellipse()` with `radiusY = radiusX * 0.35`, rotated 0.15pi.
+
+### Layer 1 — Starfield
+200 stars, radius 0.5-1.5px, white `#e8e8ff`. Twinkle via `baseOpacity * (0.6 + 0.4 * sin(sceneTime * twinkleSpeed + twinklePhase))`. Absolute positions, regenerated on resize.
+
+### Layer 2 — Planets
+8 planets (Mercury-Neptune) with randomized starting angles. Each has orbital trail (40-70 positions), glow pass (`shadowBlur: 10`) + solid core, correct relative orbital periods. Earth: 1 moon. Jupiter: 2 moons. Saturn: two elliptical rings (outer radius 16px, inner 22px) drawn before planet.
+
+### Layer 3 — Asteroid Belt
+120 asteroids between Mars and Jupiter, orbitRadius 195-215px x orbitScale. Random angles, differential rotation (0.04-0.07 rad/sec), brown `#968264`, opacity 0.3-0.6.
+
+### Layer 4 — Sun
+Three layers: outer pulsing glow (20-60px `shadowBlur`), mid layer (`#ffaa00`, radius 22px), bright core (`#ffffaa`, radius 12px).
+
+### Layer 5 — Events (7 types, pool-based, zero allocations)
+
+| Event | Pool | Spawn Rate | Behavior |
+|---|---|---|---|
+| Shooting stars | 3 | 0.008 | White streaks, 600-900 px/sec, 8-pt trail, life 0.6-0.9s |
+| Meteors | 1 | 0.004 | Jagged polygon, rotating, orange glow + smoke trail |
+| UFOs | 1 | 0.002 | Saucer + dome, teal glow, blinking belly lights, logs "they are here" |
+| Comets | 1 | 0.001 | Slow, long icy-blue trail, passes through inner system |
+| Solar flares | 2 | 0.005 | 5 curved plasma strands from sun, teal or amber, 2-3s |
+| Satellites | 2 | 0.003 | ISS-style, blinking red/white nav lights |
+| Warp flashes | 2 | 0.0008 | Expanding ring + center flash, 0.4-0.7s |
+
+### Draw order
+Clear → stars → orbit ellipses → asteroid belt → sun → solar flares → planet trails → planets (+rings, +moons) → shooting stars → comets → meteors → UFOs → satellites → warp flashes
+
+### Performance
+- `dt` capped at 0.05s
+- All arrays pre-allocated at init — no `new` calls in update loop
+- Indexed `for` loops everywhere, no `forEach`
+- `ctx.save()`/`ctx.restore()` around every glow pass
+- `ctx.shadowBlur = 0` after every glowing element
+- Trail arrays managed with `push()` + `shift()` (no `splice`)
+
+---
+
+## Wireframe Globe Scene
+
+**File:** `components/globe-scene.ts` — exports `createGlobe(w,h)`, `updateGlobe(state,dt)`, `drawGlobe(state,ctx)`, `GlobeState`.
+
+Low-orbit view of Earth as a wireframe globe. Orthographic projection with day/night terminator. Large and dominating — `radius = Math.min(w, h) * 0.52`. **Recreates on window resize** to keep the globe centered.
+
+### Layer 1 — Starfield
+200 stars, radius 0.5-1.5px, white `#e8e8ff`. Twinkle via `baseOpacity * (0.6 + 0.4 * sin(sceneTime * twinkleSpeed + twinklePhase))`.
+
+### Layer 2 — Atmosphere Glow (behind)
+Radial gradient from transparent → teal → blue → transparent, stretched beyond globe radius for a soft atmospheric halo.
+
+### Layer 3 — Ocean Fill
+Dark navy `rgba(0,15,40,0.92)` circle — the base of the globe.
+
+### Layer 4 — Continent Fills
+7 continents (North America, South America, Europe, Africa, Asia, Australia, Antarctica) as filled polygons in `rgba(0,60,40,0.7)`. Points on the back hemisphere are skipped via z-test.
+
+### Layer 5 — Grid Lines
+Regular latitude lines every 15° at low opacity. Special lines (Equator, Tropics, Arctic/Antarctic Circles) drawn brighter with `shadowBlur` glow. 24 meridians every 15°.
+
+### Layer 6 — Continent Outlines
+Same continent polygons stroked with teal glow `rgba(0,255,204,0.75)`, `shadowBlur: 5`.
+
+### Layer 7 — Terminator Line (Day/Night Boundary)
+Warm amber line along z ≈ 0 showing where day meets night. `shadowBlur: 10`, `#ffaa44`.
+
+### Layer 8 — City Lights (Night Side Only)
+20 real-world city anchors (NYC, London, Tokyo, etc.) + 20 random scatter points. Only drawn on the night side (z < 0), with opacity proportional to how deep into night they are. Warm yellow `#ffee88` with glow.
+
+### Layer 9 — Cloud Layer
+18 cloud patches at random positions between 50°N–50°S. Each is a 7-point blob. Cloud layer rotates 1.4× faster than the surface. Subtle blue-white `rgba(180,230,255,0.18)`.
+
+### Layer 10 — Planes
+3 white dots zipping around at low altitude (2–4% above surface). Fast (0.15–0.55 rad/sec), random headings that occasionally change. 30-pt fading white trail.
+
+### Layer 11 — Satellite Orbit Trails
+Fading teal trail lines behind each satellite (max 24 points), alpha increases toward the satellite.
+
+### Layer 12 — Satellites
+3 satellites at different orbits: ISS-style (51.6° inclination), near-polar, and near-equatorial. Each has a grey body, blue solar panel strokes, and a blinking nav light (red/white, ~1Hz).
+
+### Layer 13 — Atmosphere Glow (second pass)
+Thin rim glow right at the edge of the globe for 3D depth — `rgba(0,255,204,0.18)` at the outer edge.
+
+### Draw order
+Clear → stars → atmosphere (behind) → ocean → continent fills → grid lines → continent outlines → terminator → city lights → cloud layer → planes → satellite trails → satellites → atmosphere (rim)
+
+### Performance
+- `dt` capped at 0.05s
+- All arrays pre-allocated in `createGlobe` — no `new` in update loop
+- Indexed `for` loops everywhere
+- `ctx.save()`/`ctx.restore()` around every glow pass
+- `ctx.shadowBlur = 0` after every glowing element
+- Surface rotation: ~7 min/revolution (0.015 rad/s)
+
+---
+
+## Secret Scene Picker
+
+**File:** `components/scene-picker.tsx` — "use client" component, imported in `app/layout.tsx`.
+
+Click the **s** in the footer's "blooshoo" text to open a popup menu listing all active scenes. The "s" is subtly teal-tinted with a dotted underline as a hint.
+
+### How it works
+- Uses `CustomEvent` on `window` for communication with `CanvasBackground`
+- On mount, dispatches `blooshoo:request-scenes` — `CanvasBackground` responds with `blooshoo:scenes-list` containing all scene names, modes, colors, and the current scene
+- When a scene is selected, dispatches `blooshoo:switch-scene` with the mode — `CanvasBackground` reinitializes everything for that scene
+- Closes on outside click or Escape key
+
+### Scene switching
+`switchToScene(mode)` in `canvas-background.tsx`:
+1. Finds the scene in `allScenes` by mode
+2. Resets all draw-mode state (lineIdx, progress, alpha, timers)
+3. Clears all population pools (trail ghosts, wake points, sparks, droplets)
+4. Nulls all scene-specific states
+5. Initializes the newly selected scene
+6. Dispatches updated `blooshoo:scenes-list` so the picker highlights the current scene
