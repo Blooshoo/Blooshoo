@@ -9,10 +9,8 @@ export const authConfig = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id!;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        token.displayName = (user as any).displayName ?? "";
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        token.role = (user as any).role ?? "contributor";
+        token.displayName = user.displayName ?? "";
+        token.role = user.role ?? "contributor";
       }
       return token;
     },
