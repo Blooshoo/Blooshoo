@@ -1,6 +1,5 @@
 "use client";
 
-import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,9 +12,17 @@ import {
 import { Menu, LogOut, KeyRound } from "lucide-react";
 import { AdminSidebar } from "./admin-sidebar";
 import { useState } from "react";
+import { createAuthClient } from "better-auth/react";
+
+const authClient = createAuthClient();
 
 export function AdminHeader() {
   const [open, setOpen] = useState(false);
+
+  async function handleLogout() {
+    await authClient.signOut();
+    window.location.href = "/bloo/login";
+  }
 
   return (
     <header className="h-14 border-b border-border bg-card flex items-center px-4 gap-4 shrink-0">
@@ -63,7 +70,7 @@ export function AdminHeader() {
         variant="ghost"
         size="sm"
         className="text-muted-foreground gap-2"
-        onClick={() => signOut({ callbackUrl: "/bloo/login" })}
+        onClick={handleLogout}
       >
         <LogOut className="size-4" />
         <span className="hidden sm:inline">Sign out</span>

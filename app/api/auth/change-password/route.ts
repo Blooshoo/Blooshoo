@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { headers } from "next/headers";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
@@ -12,8 +13,11 @@ import bcrypt from "bcryptjs";
  */
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -23,18 +27,18 @@ export async function POST(req: NextRequest) {
     if (!currentPassword || !newPassword) {
       return NextResponse.json(
         { error: "currentPassword and newPassword are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (newPassword.length < 8) {
       return NextResponse.json(
         { error: "New password must be at least 8 characters" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    const userId = parseInt(session.user.id, 10);
+    const userId = Number(session.user.id);
 
     const [user] = await db
       .select()
@@ -51,7 +55,7 @@ export async function POST(req: NextRequest) {
     if (!valid) {
       return NextResponse.json(
         { error: "Current password is incorrect" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -68,7 +72,7 @@ export async function POST(req: NextRequest) {
     console.error("POST /api/auth/change-password error:", error);
     return NextResponse.json(
       { error: "Failed to change password" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

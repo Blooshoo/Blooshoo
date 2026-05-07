@@ -1,16 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
+import { headers } from "next/headers";
 import { db } from "@/lib/db";
 import { media } from "@/lib/db/schema";
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
 import { deleteFromBunnyCDN, extractFilenameFromUrl } from "@/lib/bunnycdn";
 import { eq } from "drizzle-orm";
 
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await auth();
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -41,6 +44,9 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("DELETE /api/media/[id] error:", error);
-    return NextResponse.json({ error: "Failed to delete media" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to delete media" },
+      { status: 500 },
+    );
   }
 }

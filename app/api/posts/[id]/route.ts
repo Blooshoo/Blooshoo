@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { headers } from "next/headers";
 import { db } from "@/lib/db";
 import { posts, users } from "@/lib/db/schema";
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
 import { eq } from "drizzle-orm";
 
 export async function GET(
@@ -54,8 +55,10 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -106,8 +109,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

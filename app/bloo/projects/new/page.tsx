@@ -1,9 +1,13 @@
-import { auth } from "@/auth";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 import { ProjectForm } from "../project-form";
 
 export default async function NewProjectPage() {
-  const session = await auth();
-  const isAdmin = session?.user?.role === "admin";
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  const isAdmin =
+    ((session?.user as Record<string, unknown>)?.role as string) === "admin";
 
   return (
     <div className="space-y-6">

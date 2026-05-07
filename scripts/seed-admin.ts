@@ -25,7 +25,7 @@ import "dotenv/config";
 import bcrypt from "bcryptjs";
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
-import { users } from "../lib/db/schema";
+import { users, account } from "../lib/db/schema";
 import { eq } from "drizzle-orm";
 import path from "path";
 
@@ -72,12 +72,31 @@ async function main() {
 
   // Use the pre-hashed password if provided, otherwise hash the plaintext
   const hash = passwordHash ?? (await bcrypt.hash(plainPassword!, 12));
+  const now = new Date();
 
-  await db.insert(users).values({
-    username,
-    displayName,
-    passwordHash: hash,
-    role: "admin",
+  const [newUser] = await db
+    .insert(users)
+    .values({
+      username,
+      displayName,
+      passwordHash: hash,
+      role: "admin",
+      email: `${username}@blooshoo.internal`, // better-auth requires valid email format
+      emailVerified: true,
+      createdAt: now,
+      updatedAt: now,
+    })
+    .returning();
+
+  // Create the matching account row for better-auth credentials auth
+  await db.insert(account).values({
+    id: `credential-${newUser.id}`,
+    accountId: String(newUser.id),
+    providerId: "credential",
+    userId: newUser.id,
+    password: hash,
+    createdAt: now,
+    updatedAt: now,
   });
 
   console.log(`Admin user "${username}" created successfully.`);

@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 import { AdminSidebar } from "./components/admin-sidebar";
 import { AdminHeader } from "./components/admin-header";
 
@@ -8,15 +8,12 @@ export default async function BlooLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
   // If not logged in, only allow the login page through.
-  // Without this check the layout would redirect /bloo/login → /bloo/login
-  // in an infinite loop because the login page is nested under /bloo.
   if (!session) {
-    // Middleware already blocks non-login /bloo routes, so if we reach here
-    // without a session the request MUST be for /bloo/login. Just render
-    // the children (the login form) without the admin chrome.
     return <>{children}</>;
   }
 

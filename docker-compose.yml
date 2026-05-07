@@ -8,8 +8,8 @@ services:
     environment:
       DATABASE_PATH: /data/blooshoo.db
       NODE_ENV: production
-      # NextAuth — external URL other devices on your LAN will use
-      AUTH_URL: ${AUTH_URL:-http://192.168.0.124:7777}
+      # better-auth — base URL for auth callbacks
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://192.168.0.124:7777}
     env_file:
       - .env.local
     restart: unless-stopped

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { headers } from "next/headers";
 import { db } from "@/lib/db";
 import { projects, users } from "@/lib/db/schema";
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
 import { eq } from "drizzle-orm";
 
 interface ProjectLink {
@@ -66,10 +67,14 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const role = (session.user as Record<string, unknown>).role as string;
 
     const { id } = await params;
     const projectId = parseInt(id, 10);
@@ -105,7 +110,7 @@ export async function PUT(
     if (sortOrder !== undefined) updateData.sortOrder = sortOrder;
 
     // Only admins can set featured
-    if (featured !== undefined && session.user.role === "admin") {
+    if (featured !== undefined && role === "admin") {
       updateData.featured = featured;
     }
 
@@ -139,8 +144,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

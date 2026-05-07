@@ -1,19 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "crypto";
+import { headers } from "next/headers";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
 // DELETE — delete a user (admin only)
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id || session.user.role !== "admin") {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const role = (session.user as Record<string, unknown>).role as string;
+    if (role !== "admin") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -23,11 +31,13 @@ export async function DELETE(
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
 
+    const currentUserId = Number(session.user.id);
+
     // Prevent deleting yourself
-    if (String(userId) === session.user.id) {
+    if (userId === currentUserId) {
       return NextResponse.json(
         { error: "You cannot delete your own account." },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -45,7 +55,7 @@ export async function DELETE(
     console.error("DELETE /api/users/[id] error:", error);
     return NextResponse.json(
       { error: "Failed to delete user" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -54,11 +64,18 @@ export async function DELETE(
 // Generates a random temp password, hashes & updates, returns plaintext temp
 export async function PUT(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id || session.user.role !== "admin") {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const role = (session.user as Record<string, unknown>).role as string;
+    if (role !== "admin") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -94,7 +111,7 @@ export async function PUT(
     console.error("PUT /api/users/[id] error:", error);
     return NextResponse.json(
       { error: "Failed to reset password" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

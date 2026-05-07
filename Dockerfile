@@ -14,7 +14,9 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 # Stub DB for build-time generateStaticParams (produces an empty blog, fine)
 ENV DATABASE_PATH=/tmp/build.db
-ENV AUTH_SECRET=build-placeholder
+ENV AUTH_SECRET=build-placeholder-32-chars-min
+# better-auth needs a base URL during build
+ENV BETTER_AUTH_URL=http://localhost:3000
 
 # Apply schema so better-sqlite3 doesn't throw at import time during build
 RUN npx drizzle-kit push && npm run build

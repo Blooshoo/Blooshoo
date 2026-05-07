@@ -1,4 +1,5 @@
-import { auth } from "@/auth";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { projects, users } from "@/lib/db/schema";
 import { eq, asc } from "drizzle-orm";
@@ -56,9 +57,13 @@ const selectColumns = {
 };
 
 export default async function ProjectsPage() {
-  const session = await auth();
-  const role = session?.user?.role;
-  const userId = session?.user?.id ? parseInt(session.user.id, 10) : null;
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  const role = (session?.user as Record<string, unknown>)?.role as
+    | string
+    | null;
+  const userId = session ? Number(session.user.id) : null;
 
   let allProjects: ProjectRow[];
 

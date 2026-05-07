@@ -15,7 +15,7 @@ import { UsersClient, CreateUserButton } from "./components/users-client";
 
 export default async function UsersPage() {
   const session = await requireAdmin();
-  const currentUserId = parseInt(session.user.id, 10);
+  const currentUserId = session.id;
 
   const allUsers = await db
     .select({

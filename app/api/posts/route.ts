@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { headers } from "next/headers";
 import { db } from "@/lib/db";
 import { posts, users } from "@/lib/db/schema";
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
 import { slugify } from "@/lib/utils";
 import { eq, desc } from "drizzle-orm";
 
@@ -12,8 +13,10 @@ export async function GET(req: NextRequest) {
 
     // Published is public; everything else (draft or no filter) requires auth
     if (status !== "published") {
-      const session = await auth();
-      if (!session?.user?.id) {
+      const session = await auth.api.getSession({
+        headers: await headers(),
+      });
+      if (!session) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
     }
@@ -73,8 +76,10 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -103,6 +108,7 @@ export async function POST(req: NextRequest) {
     }
 
     const now = new Date();
+    const authorId = Number(session.user.id);
     const [post] = await db
       .insert(posts)
       .values({
@@ -113,7 +119,7 @@ export async function POST(req: NextRequest) {
         coverImage: coverImage ?? null,
         status: status ?? "draft",
         tags: JSON.stringify(Array.isArray(tags) ? tags : []),
-        authorId: parseInt(session.user.id, 10),
+        authorId,
         createdAt: now,
         updatedAt: now,
       })

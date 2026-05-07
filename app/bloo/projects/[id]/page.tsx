@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { auth } from "@/auth";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { projects, users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -15,8 +16,11 @@ export default async function EditProjectPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const session = await auth();
-  const isAdmin = session?.user?.role === "admin";
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  const isAdmin =
+    ((session?.user as Record<string, unknown>)?.role as string) === "admin";
 
   const { id } = await params;
   const projectId = parseInt(id, 10);

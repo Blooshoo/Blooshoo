@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { headers } from "next/headers";
 import { db } from "@/lib/db";
 import { projects, users } from "@/lib/db/schema";
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
 import { eq, asc } from "drizzle-orm";
 
 interface ProjectLink {
@@ -11,9 +12,13 @@ interface ProjectLink {
 
 export async function GET() {
   try {
-    const session = await auth();
-    const role = session?.user?.role;
-    const userId = session?.user?.id ? parseInt(session.user.id, 10) : null;
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    const role = (session?.user as Record<string, unknown>)?.role as
+      | string
+      | null;
+    const userId = session ? Number(session.user.id) : null;
 
     let results;
 
@@ -104,10 +109,14 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const role = (session.user as Record<string, unknown>).role as string;
 
     const body = await req.json();
     const {
@@ -130,10 +139,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Only admins can set featured
-    const safeFeatured =
-      session.user.role === "admin" ? (featured ?? false) : false;
+    const safeFeatured = role === "admin" ? (featured ?? false) : false;
 
     const now = new Date();
+    const ownerId = Number(session.user.id);
     const [project] = await db
       .insert(projects)
       .values({
@@ -144,7 +153,7 @@ export async function POST(req: NextRequest) {
         image: image ?? null,
         ownerType,
         ownerName: ownerName ?? null,
-        ownerId: parseInt(session.user.id, 10),
+        ownerId,
         featured: safeFeatured,
         sortOrder: sortOrder ?? 0,
         createdAt: now,

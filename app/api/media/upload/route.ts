@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { headers } from "next/headers";
 import { db } from "@/lib/db";
 import { media } from "@/lib/db/schema";
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
 import { uploadToBunnyCDN } from "@/lib/bunnycdn";
 
 const ALLOWED_MIME_TYPES = new Set([
@@ -17,7 +18,9 @@ const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth();
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -34,10 +37,16 @@ export async function POST(req: NextRequest) {
     const size = file.size;
 
     if (!ALLOWED_MIME_TYPES.has(mimeType)) {
-      return NextResponse.json({ error: "File type not allowed" }, { status: 400 });
+      return NextResponse.json(
+        { error: "File type not allowed" },
+        { status: 400 },
+      );
     }
     if (size > MAX_FILE_SIZE) {
-      return NextResponse.json({ error: "File too large (max 20 MB)" }, { status: 400 });
+      return NextResponse.json(
+        { error: "File too large (max 20 MB)" },
+        { status: 400 },
+      );
     }
 
     // Sanitize original name for filename

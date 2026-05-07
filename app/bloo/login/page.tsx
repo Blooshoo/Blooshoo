@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, LogIn } from "lucide-react";
+import { createAuthClient } from "better-auth/react";
+
+const authClient = createAuthClient();
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -20,15 +22,19 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const result = await signIn("credentials", {
-        username,
+      // better-auth requires a valid email format, so we suffix the username
+      const result = await authClient.signIn.email({
+        email: `${username}@blooshoo.internal`,
         password,
-        redirectTo: "/bloo",
-        redirect: false,
       });
 
-      if (result?.error) {
-        setError("Invalid username or password.");
+      if (result && "error" in result && result.error) {
+        const err = result.error as { message?: string } | string;
+        setError(
+          typeof err === "string"
+            ? err
+            : err.message || "Invalid username or password.",
+        );
       } else {
         window.location.href = "/bloo";
       }
