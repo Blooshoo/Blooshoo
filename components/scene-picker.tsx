@@ -15,7 +15,7 @@ interface SceneInfo {
 export function ScenePicker() {
   const [open, setOpen] = useState(false);
   const [scenes, setScenes] = useState<SceneInfo[]>([]);
-  const [currentMode, setCurrentMode] = useState<string | null>(null);
+  const [currentScene, setCurrentScene] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // On mount, request the scene list from CanvasBackground
@@ -23,7 +23,7 @@ export function ScenePicker() {
     const handleScenesList = (e: Event) => {
       const detail = (e as CustomEvent).detail;
       if (detail?.scenes) setScenes(detail.scenes);
-      if (detail?.current) setCurrentMode(detail.current);
+      if (detail?.current) setCurrentScene(detail.current);
     };
 
     window.addEventListener("blooshoo:scenes-list", handleScenesList);
@@ -64,9 +64,9 @@ export function ScenePicker() {
     return () => document.removeEventListener("keydown", onKey);
   }, [open]);
 
-  function selectScene(mode: string) {
+  function selectScene(name: string) {
     window.dispatchEvent(
-      new CustomEvent("blooshoo:switch-scene", { detail: { mode } }),
+      new CustomEvent("blooshoo:switch-scene", { detail: { name } }),
     );
     setOpen(false);
   }
@@ -94,21 +94,21 @@ export function ScenePicker() {
           ref={menuRef}
           className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-background border border-border rounded-lg shadow-xl p-2 min-w-[180px] z-50"
         >
-          <div className="text-[10px] uppercase tracking-widest text-muted-foreground px-2 py-1 mb-1">
+          <span className="block text-[10px] uppercase tracking-widest text-muted-foreground px-2 py-1 mb-1">
             Scene Picker
-          </div>
+          </span>
           {scenes.length === 0 && (
-            <div className="text-xs text-muted-foreground px-2 py-1">
+            <span className="block text-xs text-muted-foreground px-2 py-1">
               Loading…
-            </div>
+            </span>
           )}
           {scenes.map((s) => (
             <button
-              key={s.mode}
+              key={s.name}
               type="button"
-              onClick={() => selectScene(s.mode)}
+              onClick={() => selectScene(s.name)}
               className={`w-full text-left px-2 py-1.5 rounded text-xs flex items-center gap-2 transition-colors ${
-                s.mode === currentMode
+                s.name === currentScene
                   ? "bg-primary/10 text-primary"
                   : "text-foreground hover:bg-muted"
               }`}

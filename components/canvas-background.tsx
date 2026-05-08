@@ -1892,14 +1892,14 @@ export function CanvasBackground() {
               mode: s.mode,
               color: s.color,
             })),
-            current: scene.mode,
+            current: scene.name,
           },
         }),
       );
     }
 
-    function switchToScene(mode: string) {
-      const found = allScenes.find((s) => s.mode === mode);
+    function switchToScene(name: string) {
+      const found = allScenes.find((s) => s.name === name);
       if (!found) return;
       scene = found;
       // Reset draw-mode state
@@ -1918,16 +1918,16 @@ export function CanvasBackground() {
       solarSystemState = null;
       globeState = null;
       // Init the selected scene
-      if (mode === "revenge") revengeState = createRevengeScene(w, h);
-      if (mode === "neonField") neonFieldState = createNeonField(w, h);
-      if (mode === "solarSystem") solarSystemState = createSolarSystem(w, h);
-      if (mode === "globe") globeState = createGlobe(w, h);
-      if (mode === "aquarium") initAquarium();
+      if (found.mode === "revenge") revengeState = createRevengeScene(w, h);
+      if (found.mode === "neonField") neonFieldState = createNeonField(w, h);
+      if (found.mode === "solarSystem") solarSystemState = createSolarSystem(w, h);
+      if (found.mode === "globe") globeState = createGlobe(w, h);
+      if (found.mode === "aquarium") initAquarium();
       respondWithScenes();
     }
 
     function handleSwitchScene(e: Event) {
-      switchToScene((e as CustomEvent).detail.mode);
+      switchToScene((e as CustomEvent).detail.name);
     }
 
     window.addEventListener("blooshoo:request-scenes", respondWithScenes);
