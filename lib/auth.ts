@@ -93,26 +93,12 @@ export const auth = betterAuth({
   },
 
   databaseHooks: {
-    user: {
-      create: {
-        before: async (_user) => {
-          // All legitimate users are pre-created by the admin via /api/users.
-          // The only path that reaches this hook is an OAuth provider attempting
-          // to create a brand-new user (unregistered Discord account).
-          // Check if their email matches a pre-approved Discord ID via the
-          // account table lookup — but since this fires before the account row
-          // is written, we block all OAuth-initiated creations outright.
-          // Pre-registered Discord users already have an account row and will
-          // be matched by better-auth before this hook is reached.
-          throw new Error("Registration is not open. Contact an administrator.");
-        },
-      },
-    },
     account: {
       create: {
         before: async (accountData) => {
           // For Discord accounts: only allow pre-approved Discord IDs.
-          // credential accounts are created by our /api/users route directly
+          // Allowed IDs can self-register via OAuth; everyone else is blocked.
+          // Credential accounts are created by our /api/users route directly
           // (bypassing this hook), so this guard only applies to OAuth.
           if (
             accountData.providerId === "discord" &&
