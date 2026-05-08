@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import { headers } from "next/headers";
 import { db } from "@/lib/db";
-import { users } from "@/lib/db/schema";
+import { users, account } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
 // DELETE — delete a user (admin only)
@@ -101,6 +101,14 @@ export async function PUT(
     if (!updated) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
+
+    // Keep the account table in sync — better-auth validates against account.password
+    await db
+      .update(account)
+      .set({ password: passwordHash })
+      .where(
+        and(eq(account.userId, userId), eq(account.providerId, "credential")),
+      );
 
     return NextResponse.json({
       success: true,

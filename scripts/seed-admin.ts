@@ -35,12 +35,13 @@ const DB_PATH =
 async function main() {
   const username = process.env.ADMIN_USERNAME;
   const displayName = process.env.ADMIN_DISPLAY_NAME;
+  const email = process.env.ADMIN_EMAIL;
   const plainPassword = process.env.ADMIN_PASSWORD;
   const passwordHash = process.env.ADMIN_PASSWORD_HASH;
 
-  if (!username || !displayName) {
+  if (!username || !displayName || !email) {
     console.error(
-      "Missing required env vars: ADMIN_USERNAME, ADMIN_DISPLAY_NAME",
+      "Missing required env vars: ADMIN_USERNAME, ADMIN_DISPLAY_NAME, ADMIN_EMAIL",
     );
     process.exit(1);
   }
@@ -81,7 +82,7 @@ async function main() {
       displayName,
       passwordHash: hash,
       role: "admin",
-      email: `${username}@blooshoo.internal`, // better-auth requires valid email format
+      email,
       emailVerified: true,
       createdAt: now,
       updatedAt: now,

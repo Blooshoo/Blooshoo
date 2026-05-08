@@ -16,7 +16,7 @@ export const users = sqliteTable("users", {
     .notNull()
     .$default(() => new Date()),
   // ── better-auth compatibility columns ──
-  email: text("email"),
+  email: text("email").unique(),
   emailVerified: integer("email_verified", { mode: "boolean" }).default(false),
   image: text("image"),
   updatedAt: integer("updated_at", { mode: "timestamp" }).$default(

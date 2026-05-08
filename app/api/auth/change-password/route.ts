@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { db } from "@/lib/db";
-import { users } from "@/lib/db/schema";
+import { users, account } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
 /**
@@ -66,6 +66,14 @@ export async function POST(req: NextRequest) {
       .update(users)
       .set({ passwordHash: newHash })
       .where(eq(users.id, userId));
+
+    // Keep the account table in sync — better-auth validates against account.password
+    await db
+      .update(account)
+      .set({ password: newHash })
+      .where(
+        and(eq(account.userId, userId), eq(account.providerId, "credential")),
+      );
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -35,21 +35,25 @@ export function CreateUserDialog({
 }: CreateUserDialogProps) {
   const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [discordId, setDiscordId] = useState("");
   const [role, setRole] = useState<"admin" | "contributor">("contributor");
   const [loading, setLoading] = useState(false);
 
   const reset = () => {
     setUsername("");
     setDisplayName("");
+    setEmail("");
     setPassword("");
+    setDiscordId("");
     setRole("contributor");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username.trim() || !displayName.trim() || !password.trim()) {
-      toast.error("All fields are required");
+    if (!username.trim() || !displayName.trim() || !email.trim() || !password.trim()) {
+      toast.error("Username, display name, email, and password are required");
       return;
     }
     if (password.trim().length < 4) {
@@ -65,8 +69,10 @@ export function CreateUserDialog({
         body: JSON.stringify({
           username: username.trim(),
           displayName: displayName.trim(),
+          email: email.trim(),
           password: password.trim(),
           role,
+          discordId: discordId.trim() || undefined,
         }),
       });
 
@@ -102,7 +108,7 @@ export function CreateUserDialog({
             Create User
           </DialogTitle>
           <DialogDescription>
-            Add a new user account. They can change their password later.
+            Add a new user account. They can log in with email + password or Discord.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -127,6 +133,17 @@ export function CreateUserDialog({
             />
           </div>
           <div className="space-y-2">
+            <Label htmlFor="cu-email">Email</Label>
+            <Input
+              id="cu-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="jane@example.com"
+              required
+            />
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="cu-password">Temporary Password</Label>
             <Input
               id="cu-password"
@@ -136,6 +153,21 @@ export function CreateUserDialog({
               placeholder="Enter a temporary password"
               required
             />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="cu-discord">
+              Discord User ID{" "}
+              <span className="text-muted-foreground font-normal">(optional)</span>
+            </Label>
+            <Input
+              id="cu-discord"
+              value={discordId}
+              onChange={(e) => setDiscordId(e.target.value)}
+              placeholder="e.g. 143114742205120514"
+            />
+            <p className="text-xs text-muted-foreground">
+              Right-click the user in Discord → Copy User ID. Enables Discord login for this account.
+            </p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="cu-role">Role</Label>
