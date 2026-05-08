@@ -10,7 +10,7 @@ services:
       NODE_ENV: production
       # better-auth — base URL for auth callbacks
       BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://192.168.0.124:7777}
-      BETTER_AUTH_TRUSTED_ORIGINS: ${BETTER_AUTH_TRUSTED_ORIGINS:-http://192.168.0.124:7777,http://localhost:7777}
+      BETTER_AUTH_TRUSTED_ORIGINS: ${BETTER_AUTH_TRUSTED_ORIGINS:-http://192.168.0.124:7777,http://localhost:7777,https://blooshoo.com}
     env_file:
       - .env.local
     restart: unless-stopped
