@@ -54,11 +54,11 @@ export default function RootLayout({
 
             <footer className="border-t border-border mt-auto">
               <div className="max-w-3xl mx-auto px-4 h-12 flex items-center justify-center">
-                <p className="text-sm text-muted-foreground">
+                <span className="text-sm text-muted-foreground">
                   &copy; {new Date().getFullYear()} bloo
                   <ScenePicker />
                   hoo
-                </p>
+                </span>
               </div>
             </footer>
           </div>
