@@ -22,19 +22,18 @@ export async function middleware(request: NextRequest) {
 
   const isLoggedIn = !!sessionCookie;
 
-  // Already authenticated on login page → redirect to /bloo
-  if (pathname === "/bloo/login" && isLoggedIn) {
-    return NextResponse.redirect(new URL("/bloo", request.url));
-  }
-
   // Not authenticated on a protected bloo route → redirect to /bloo/login
+  // (login page itself is always allowed through)
   if (pathname !== "/bloo/login" && !isLoggedIn) {
     return NextResponse.redirect(new URL("/bloo/login", request.url));
   }
 
-  return NextResponse.next();
+  // Forward the pathname so the layout can read it without needing a hook
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-pathname", pathname);
+  return NextResponse.next({ request: { headers: requestHeaders } });
 }
 
 export const config = {
-  matcher: ["/bloo/:path*"],
+  matcher: ["/bloo", "/bloo/:path*"],
 };

@@ -4,8 +4,20 @@ import { db } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
 import bcrypt from "bcryptjs";
 
+if (!process.env.AUTH_SECRET && !process.env.SESSION_SECRET) {
+  throw new Error("AUTH_SECRET environment variable is required but not set.");
+}
+
+// Discord IDs pre-approved by the admin (set ALLOWED_DISCORD_IDS in .env)
+const allowedDiscordIds = new Set(
+  (process.env.ALLOWED_DISCORD_IDS ?? "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean),
+);
+
 export const auth = betterAuth({
-  secret: process.env.AUTH_SECRET || process.env.SESSION_SECRET || "",
+  secret: process.env.AUTH_SECRET || process.env.SESSION_SECRET,
   baseURL: process.env.BETTER_AUTH_URL,
   trustedOrigins: process.env.BETTER_AUTH_TRUSTED_ORIGINS
     ? process.env.BETTER_AUTH_TRUSTED_ORIGINS.split(",")
@@ -47,6 +59,19 @@ export const auth = betterAuth({
     },
   },
 
+  rateLimit: {
+    enabled: true,
+    window: 60, // 60-second sliding window
+    max: 10,    // max 10 auth requests per window per IP
+  },
+
+  socialProviders: {
+    discord: {
+      clientId: process.env.DISCORD_CLIENT_ID!,
+      clientSecret: process.env.DISCORD_CLIENT_SECRET!,
+    },
+  },
+
   emailAndPassword: {
     enabled: true,
     password: {
@@ -65,5 +90,39 @@ export const auth = betterAuth({
     },
     // Disable sign-up via better-auth — users are managed through /bloo/users
     disableSignUp: true,
+  },
+
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (_user) => {
+          // All legitimate users are pre-created by the admin via /api/users.
+          // The only path that reaches this hook is an OAuth provider attempting
+          // to create a brand-new user (unregistered Discord account).
+          // Check if their email matches a pre-approved Discord ID via the
+          // account table lookup — but since this fires before the account row
+          // is written, we block all OAuth-initiated creations outright.
+          // Pre-registered Discord users already have an account row and will
+          // be matched by better-auth before this hook is reached.
+          throw new Error("Registration is not open. Contact an administrator.");
+        },
+      },
+    },
+    account: {
+      create: {
+        before: async (accountData) => {
+          // For Discord accounts: only allow pre-approved Discord IDs.
+          // credential accounts are created by our /api/users route directly
+          // (bypassing this hook), so this guard only applies to OAuth.
+          if (
+            accountData.providerId === "discord" &&
+            !allowedDiscordIds.has(accountData.accountId)
+          ) {
+            throw new Error("Your Discord account is not authorised to access this panel.");
+          }
+          return { data: accountData };
+        },
+      },
+    },
   },
 });

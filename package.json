@@ -12,6 +12,7 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "seed": "tsx scripts/seed-admin.ts",
+    "reset-admin": "tsx scripts/reset-admin.ts",
     "hash-password": "tsx scripts/generate-password.mjs"
   },
   "dependencies": {

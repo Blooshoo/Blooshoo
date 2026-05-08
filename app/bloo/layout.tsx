@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { AdminSidebar } from "./components/admin-sidebar";
 import { AdminHeader } from "./components/admin-header";
@@ -8,11 +9,26 @@ export default async function BlooLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const headersList = await headers();
   const session = await auth.api.getSession({
-    headers: await headers(),
+    headers: headersList,
   });
 
-  // If not logged in, only allow the login page through.
+  const pathname = headersList.get("x-pathname") ?? "";
+  const isLoginPage = pathname === "/bloo/login";
+
+  // Valid session on the login page → send them to the dashboard
+  if (session && isLoginPage) {
+    redirect("/bloo");
+  }
+
+  // No valid session on a protected page → send to login
+  // (middleware handles the cookie-level check; this is the DB-level fallback)
+  if (!session && !isLoginPage) {
+    redirect("/bloo/login");
+  }
+
+  // Render the login page without the admin shell
   if (!session) {
     return <>{children}</>;
   }

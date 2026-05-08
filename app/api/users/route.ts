@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { db } from "@/lib/db";
 import { users, account } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
 // GET — list all users (admin only)
@@ -58,11 +58,19 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { username, displayName, password, role: newRole } = body;
+    const { username, displayName, email, password, role: newRole, discordId } = body;
 
-    if (!username || !displayName || !password || !newRole) {
+    if (!username || !displayName || !email || !password || !newRole) {
       return NextResponse.json(
-        { error: "username, displayName, password, and role are required" },
+        { error: "username, displayName, email, password, and role are required" },
+        { status: 400 },
+      );
+    }
+
+    // Basic email format check
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json(
+        { error: "Invalid email address" },
         { status: 400 },
       );
     }
@@ -74,16 +82,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check for duplicate username
+    // Check for duplicate username or email
     const [existing] = await db
       .select({ id: users.id })
       .from(users)
-      .where(eq(users.username, username))
+      .where(or(eq(users.username, username), eq(users.email, email)))
       .limit(1);
 
     if (existing) {
       return NextResponse.json(
-        { error: "Username already taken" },
+        { error: "Username or email already taken" },
         { status: 409 },
       );
     }
@@ -98,7 +106,7 @@ export async function POST(req: NextRequest) {
         displayName,
         passwordHash,
         role: newRole as "admin" | "contributor",
-        email: `${username}@blooshoo.internal`, // better-auth requires valid email format
+        email,
         emailVerified: true,
         createdAt: now,
         updatedAt: now,
@@ -111,7 +119,7 @@ export async function POST(req: NextRequest) {
         createdAt: users.createdAt,
       });
 
-    // Create the matching account row for better-auth credentials auth
+    // Credential account row — used by better-auth for email+password login
     await db.insert(account).values({
       id: `credential-${newUser.id}`,
       accountId: String(newUser.id),
@@ -121,6 +129,19 @@ export async function POST(req: NextRequest) {
       createdAt: now,
       updatedAt: now,
     });
+
+    // Optional Discord account row — pre-registers the Discord ID so OAuth
+    // login succeeds without creating a new user
+    if (discordId && typeof discordId === "string" && discordId.trim()) {
+      await db.insert(account).values({
+        id: `discord-${newUser.id}`,
+        accountId: discordId.trim(),
+        providerId: "discord",
+        userId: newUser.id,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
 
     return NextResponse.json(newUser, { status: 201 });
   } catch (error) {
