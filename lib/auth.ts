@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
-import { db } from "@/lib/db";
-import * as schema from "@/lib/db/schema";
+import { db } from "./db";
+import * as schema from "./db/schema";
 import bcrypt from "bcryptjs";
 
 if (!process.env.AUTH_SECRET && !process.env.SESSION_SECRET) {
@@ -35,10 +35,10 @@ export const auth = betterAuth({
   user: {
     modelName: "users",
     fields: {
-      name: "display_name",
-      emailVerified: "email_verified",
-      createdAt: "created_at",
-      updatedAt: "updated_at",
+      name: "displayName",
+      emailVerified: "emailVerified",
+      createdAt: "createdAt",
+      updatedAt: "updatedAt",
     },
     additionalFields: {
       role: {
