@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { Providers } from "@/components/providers";
 import { CanvasBackground } from "@/components/canvas-background";
 import { PublicNav } from "@/components/public-nav";
-import { ScenePicker } from "@/components/scene-picker";
+import { PublicFooter } from "@/components/public-footer";
 
 const vt323 = VT323({
   weight: "400",
@@ -52,15 +52,7 @@ export default function RootLayout({
 
             <main className="flex-1">{children}</main>
 
-            <footer className="border-t border-border mt-auto">
-              <div className="max-w-3xl mx-auto px-4 h-12 flex items-center justify-center">
-                <span className="text-sm text-muted-foreground">
-                  &copy; {new Date().getFullYear()} bloo
-                  <ScenePicker />
-                  hoo
-                </span>
-              </div>
-            </footer>
+            <PublicFooter />
           </div>
 
           <Toaster />

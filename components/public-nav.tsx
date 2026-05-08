@@ -26,6 +26,8 @@ export function PublicNav() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
+  if (pathname.startsWith("/bloo")) return null;
+
   return (
     <header className="border-b border-border sticky top-0 z-50">
       <div className="content-panel">
