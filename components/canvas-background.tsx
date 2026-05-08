@@ -25,6 +25,24 @@ import {
   drawGlobe,
   type GlobeState,
 } from "./globe-scene";
+import {
+  createAurora,
+  updateAurora,
+  drawAurora,
+  type AuroraState,
+} from "./aurora-scene";
+import {
+  createSynthwave,
+  updateSynthwave,
+  drawSynthwave,
+  type SynthwaveState,
+} from "./synthwave-scene";
+import {
+  createNeuralNet,
+  updateNeuralNet,
+  drawNeuralNet,
+  type NeuralNetState,
+} from "./neural-scene";
 
 // ---- Types ----
 
@@ -42,7 +60,10 @@ type SceneMode =
   | "aquarium"
   | "neonField"
   | "solarSystem"
-  | "globe";
+  | "globe"
+  | "aurora"
+  | "synthwave"
+  | "neural";
 interface Scene {
   name: string;
   mode: SceneMode;
@@ -494,6 +515,27 @@ export function CanvasBackground() {
         speed: 0,
         lines: [],
       },
+      {
+        name: "aurora",
+        mode: "aurora",
+        color: "#44ffaa",
+        speed: 0,
+        lines: [],
+      },
+      {
+        name: "synthwave",
+        mode: "synthwave",
+        color: "#ff00ff",
+        speed: 0,
+        lines: [],
+      },
+      {
+        name: "neural",
+        mode: "neural",
+        color: "#00ffcc",
+        speed: 0,
+        lines: [],
+      },
     ];
     let scene = allScenes[Math.floor(Math.random() * allScenes.length)];
 
@@ -543,6 +585,15 @@ export function CanvasBackground() {
 
     // ---- Globe state ----
     let globeState: GlobeState | null = null;
+
+    // ---- Aurora state ----
+    let auroraState: AuroraState | null = null;
+
+    // ---- Synthwave state ----
+    let synthwaveState: SynthwaveState | null = null;
+
+    // ---- Neural Network state ----
+    let neuralNetState: NeuralNetState | null = null;
 
     // ---- Aquarium state ----
     const neonBlades: NeonBlade[] = [];
@@ -608,6 +659,12 @@ export function CanvasBackground() {
       }
       if (scene.mode === "globe" && globeState) {
         globeState = createGlobe(w, h);
+      }
+      if (scene.mode === "synthwave" && synthwaveState) {
+        synthwaveState = createSynthwave(w, h);
+      }
+      if (scene.mode === "neural" && neuralNetState) {
+        neuralNetState = createNeuralNet(w, h);
       }
     }
 
@@ -1771,6 +1828,26 @@ export function CanvasBackground() {
         return;
       }
 
+      if (scene.mode === "aurora" && auroraState) {
+        auroraState.w = w;
+        auroraState.h = h;
+        updateAurora(auroraState, dt);
+        drawAurora(auroraState, ctx!);
+        return;
+      }
+
+      if (scene.mode === "synthwave" && synthwaveState) {
+        updateSynthwave(synthwaveState, dt);
+        drawSynthwave(synthwaveState, ctx!);
+        return;
+      }
+
+      if (scene.mode === "neural" && neuralNetState) {
+        updateNeuralNet(neuralNetState, dt);
+        drawNeuralNet(neuralNetState, ctx!);
+        return;
+      }
+
       if (scene.mode === "aquarium") {
         const tSec = time / 1000;
         updateAquarium(dt, tSec);
@@ -1880,6 +1957,9 @@ export function CanvasBackground() {
     if (scene.mode === "solarSystem")
       solarSystemState = createSolarSystem(w, h);
     if (scene.mode === "globe") globeState = createGlobe(w, h);
+    if (scene.mode === "aurora") auroraState = createAurora(w, h);
+    if (scene.mode === "synthwave") synthwaveState = createSynthwave(w, h);
+    if (scene.mode === "neural") neuralNetState = createNeuralNet(w, h);
     if (scene.mode === "aquarium") initAquarium();
 
     // ---- Scene picker event handling ----
@@ -1917,11 +1997,17 @@ export function CanvasBackground() {
       neonFieldState = null;
       solarSystemState = null;
       globeState = null;
+      auroraState = null;
+      synthwaveState = null;
+      neuralNetState = null;
       // Init the selected scene
       if (found.mode === "revenge") revengeState = createRevengeScene(w, h);
       if (found.mode === "neonField") neonFieldState = createNeonField(w, h);
       if (found.mode === "solarSystem") solarSystemState = createSolarSystem(w, h);
       if (found.mode === "globe") globeState = createGlobe(w, h);
+      if (found.mode === "aurora") auroraState = createAurora(w, h);
+      if (found.mode === "synthwave") synthwaveState = createSynthwave(w, h);
+      if (found.mode === "neural") neuralNetState = createNeuralNet(w, h);
       if (found.mode === "aquarium") initAquarium();
       respondWithScenes();
     }
