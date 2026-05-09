@@ -5,14 +5,11 @@
  * Usage: npm run reset-admin
  */
 import "dotenv/config";
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import { users, account } from "../lib/db/schema";
 import { and, eq } from "drizzle-orm";
-import path from "path";
 import bcrypt from "bcryptjs";
-
-const DB_PATH = process.env.DATABASE_PATH ?? path.join(process.cwd(), "blooshoo.db");
 
 async function main() {
   const username = process.env.ADMIN_USERNAME;
@@ -24,8 +21,8 @@ async function main() {
     process.exit(1);
   }
 
-  const sqlite = new Database(DB_PATH);
-  const db = drizzle(sqlite);
+  const client = postgres(process.env.DATABASE_URL!);
+  const db = drizzle(client);
 
   const [user] = await db
     .select()
@@ -53,6 +50,7 @@ async function main() {
     .where(and(eq(account.userId, user.id), eq(account.providerId, "credential")));
 
   console.log(`Admin "${username}" updated — email: ${email}, password: reset.`);
+  await client.end();
 }
 
 main().catch(console.error);

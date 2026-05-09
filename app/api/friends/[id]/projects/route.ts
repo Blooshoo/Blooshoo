@@ -10,8 +10,8 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const ownerId = parseInt(id, 10);
-    if (isNaN(ownerId)) {
+    const ownerId = id;
+    if (!ownerId) {
       return NextResponse.json(
         { error: "Invalid user ID" },
         { status: 400 }

@@ -98,10 +98,12 @@ export async function POST(req: NextRequest) {
 
     const passwordHash = await bcrypt.hash(password, 12);
     const now = new Date();
+    const id = crypto.randomUUID();
 
     const [newUser] = await db
       .insert(users)
       .values({
+        id,
         username,
         displayName,
         passwordHash,

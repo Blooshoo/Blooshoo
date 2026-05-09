@@ -11,18 +11,26 @@ import { ArrowRight, ExternalLink } from "lucide-react";
 type ProjectLink = { label: string; url: string };
 
 export default async function HomePage() {
-  const latestPosts = await db
-    .select()
-    .from(posts)
-    .where(eq(posts.status, "published"))
-    .orderBy(desc(posts.createdAt))
-    .limit(3);
+  type PostRow = typeof posts.$inferSelect;
+  type ProjectRow = typeof projects.$inferSelect;
+  let latestPosts: PostRow[] = [];
+  let featuredProjects: ProjectRow[] = [];
+  try {
+    latestPosts = await db
+      .select()
+      .from(posts)
+      .where(eq(posts.status, "published"))
+      .orderBy(desc(posts.createdAt))
+      .limit(3);
 
-  const featuredProjects = await db
-    .select()
-    .from(projects)
-    .where(and(eq(projects.featured, true), eq(projects.ownerType, "mine")))
-    .orderBy(projects.sortOrder);
+    featuredProjects = await db
+      .select()
+      .from(projects)
+      .where(and(eq(projects.featured, true), eq(projects.ownerType, "mine")))
+      .orderBy(projects.sortOrder);
+  } catch {
+    // DB unavailable at build time — render with empty data
+  }
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 sm:py-16 space-y-12 sm:space-y-20">

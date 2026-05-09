@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ProjectCard } from "@/components/project-card";
 
 // ─── Types ────────────────────────────────────────────────────────────
-type Friend = { id: number; username: string; displayName: string; role: string };
+type Friend = { id: string; username: string | null; displayName: string; role: string };
 type ProjectLink = { label: string; url: string };
 type ProjectData = {
   id: number;
@@ -16,7 +16,7 @@ type ProjectData = {
   image: string | null;
   ownerType: string;
   ownerName: string | null;
-  ownerId: number | null;
+  ownerId: string | null;
   featured: boolean | null;
   sortOrder: number;
   createdAt: string | Date;
@@ -89,7 +89,7 @@ export function FriendshipCircle({
   const [projs, setProjs] = useState<ProjectData[]>(adminProjects);
   const [loading, setLoading] = useState(false);
 
-  const fetchProjects = useCallback(async (id: number) => {
+  const fetchProjects = useCallback(async (id: string) => {
     setLoading(true);
     try {
       const res = await fetch(`/api/friends/${id}/projects`);

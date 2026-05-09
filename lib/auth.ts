@@ -24,7 +24,7 @@ export const auth = betterAuth({
     : [],
 
   database: drizzleAdapter(db, {
-    provider: "sqlite",
+    provider: "pg",
     schema: {
       ...schema,
       user: schema.users, // better-auth "user" → our "users" table
@@ -93,6 +93,21 @@ export const auth = betterAuth({
   },
 
   databaseHooks: {
+    user: {
+      create: {
+        before: async (user) => {
+          // Derive a username from email prefix for OAuth sign-ups
+          // (Better Auth doesn't map our custom `username` column)
+          if (!user.username) {
+            const derived = (user.email?.split("@")[0] ?? user.id)
+              .toLowerCase()
+              .replace(/[^a-z0-9_]/g, "_");
+            return { data: { ...user, username: derived } };
+          }
+          return { data: user };
+        },
+      },
+    },
     account: {
       create: {
         before: async (accountData) => {

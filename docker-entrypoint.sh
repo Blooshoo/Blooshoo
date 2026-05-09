@@ -1,9 +1,6 @@
 #!/bin/sh
 set -e
 
-DB_DIR=$(dirname "$DATABASE_PATH")
-mkdir -p "$DB_DIR"
-
 echo "Running database migrations..."
 npx drizzle-kit push
 

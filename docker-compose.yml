@@ -1,18 +1,35 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: blooshoo
+      POSTGRES_USER: blooshoo
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-blooshoo}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U blooshoo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   blooshoo:
     build: .
     ports:
       - "${HOST_PORT:-7777}:3000"
-    volumes:
-      - blooshoo_data:/data
+    depends_on:
+      postgres:
+        condition: service_healthy
     environment:
-      DATABASE_PATH: /data/blooshoo.db
+      DATABASE_URL: postgres://blooshoo:${POSTGRES_PASSWORD:-blooshoo}@postgres:5432/blooshoo
       NODE_ENV: production
       # better-auth — base URL for auth callbacks
-      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://192.168.0.124:7777}
-      BETTER_AUTH_TRUSTED_ORIGINS: ${BETTER_AUTH_TRUSTED_ORIGINS:-http://192.168.0.124:7777,http://localhost:7777,https://blooshoo.com}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:7777}
+      BETTER_AUTH_TRUSTED_ORIGINS: ${BETTER_AUTH_TRUSTED_ORIGINS:-http://localhost:7777,https://blooshoo.com}
     env_file:
-      - .env.local
+      - path: .env.local
+        required: false
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
@@ -22,4 +39,4 @@ services:
       start_period: 20s
 
 volumes:
-  blooshoo_data:
+  postgres_data:

@@ -15,8 +15,8 @@ import { toast } from "sonner";
 import { Loader2, KeyRound, Copy, Check } from "lucide-react";
 
 interface ResetPasswordDialogProps {
-  userId: number;
-  username: string;
+  userId: string;
+  username: string | null;
 }
 
 export function ResetPasswordDialog({

@@ -11,35 +11,41 @@ export const metadata: Metadata = {
 
 export default async function ProjectsPage() {
   // ── All users (the friends) ────────────────────────────────────
-  const allUsers = await db
-    .select({
-      id: users.id,
-      username: users.username,
-      displayName: users.displayName,
-      role: users.role,
-    })
-    .from(users)
-    .orderBy(users.createdAt);
-
-  // ── Admin's projects (blooshoo, pre-fetched for instant display) ─
-  const adminUser = allUsers.find(
-    (u) => u.role === "admin" && u.username === "blooshoo",
-  );
-
+  let allUsers: { id: string; username: string | null; displayName: string; role: "admin" | "contributor" }[] = [];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const parsedAdminProjects: any[] = [];
-  if (adminUser) {
-    const raw = await db
-      .select()
-      .from(projects)
-      .where(eq(projects.ownerId, adminUser.id))
-      .orderBy(asc(projects.sortOrder), asc(projects.createdAt));
-    for (const p of raw) {
-      parsedAdminProjects.push({
-        ...p,
-        links: JSON.parse(p.links),
-      });
+
+  try {
+    allUsers = await db
+      .select({
+        id: users.id,
+        username: users.username,
+        displayName: users.displayName,
+        role: users.role,
+      })
+      .from(users)
+      .orderBy(users.createdAt);
+
+    // ── Admin's projects (blooshoo, pre-fetched for instant display) ─
+    const adminUser = allUsers.find(
+      (u) => u.role === "admin" && u.username === "blooshoo",
+    );
+
+    if (adminUser) {
+      const raw = await db
+        .select()
+        .from(projects)
+        .where(eq(projects.ownerId, adminUser.id))
+        .orderBy(asc(projects.sortOrder), asc(projects.createdAt));
+      for (const p of raw) {
+        parsedAdminProjects.push({
+          ...p,
+          links: JSON.parse(p.links),
+        });
+      }
     }
+  } catch {
+    // DB unavailable at build time — render empty state
   }
 
   return (
