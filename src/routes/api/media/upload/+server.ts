@@ -1,7 +1,4 @@
-import { json, error } from '@sveltejs/kit';
-import { db } from '$lib/server/db';
-import { media } from '$lib/server/db/schema';
-import { uploadToBunnyCDN, getBunnyCDNUrl } from '$lib/server/bunnycdn';
+import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
 const ALLOWED_MIME_TYPES = new Set([
@@ -30,21 +27,5 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const safeName = file.name.replaceAll(/[^a-zA-Z0-9._-]/g, '_');
 	const filename = `${Date.now()}-${safeName}`;
 
-	const buffer = await file.arrayBuffer();
-	await uploadToBunnyCDN(buffer, filename, file.type);
-
-	const url = getBunnyCDNUrl(filename);
-
-	const [inserted] = await db
-		.insert(media)
-		.values({
-			filename,
-			originalName: file.name,
-			url,
-			mimeType: file.type,
-			size: file.size
-		})
-		.returning();
-
-	return json({ url, id: inserted.id });
+	error(503, 'Media uploads are not available yet.');
 };

@@ -16,7 +16,7 @@
 	<PublicNav />
 {/if}
 
-<main class="flex min-h-screen flex-col" class:pt-0={isAdmin} class:pb-12={!isAdmin}>
+<main class="relative z-10 flex min-h-screen flex-col" class:pt-0={isAdmin} class:pb-12={!isAdmin}>
 	{@render children()}
 </main>
 

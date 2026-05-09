@@ -1,4 +1,6 @@
-import { DEEPSEEK_API_KEY } from '$env/static/private';
+import { env } from '$env/dynamic/private';
+
+const { DEEPSEEK_API_KEY } = env;
 
 const BASE_URL = 'https://api.deepseek.com/v1';
 

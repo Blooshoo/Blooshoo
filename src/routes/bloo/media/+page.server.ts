@@ -2,7 +2,8 @@ import { db } from '$lib/server/db';
 import { media } from '$lib/server/db/schema';
 import { redirect } from '@sveltejs/kit';
 import { eq, desc } from 'drizzle-orm';
-import { deleteFromBunnyCDN, extractFilenameFromUrl } from '$lib/server/bunnycdn';
+// BunnyCDN disabled — import kept for future use
+// import { deleteFromBunnyCDN, extractFilenameFromUrl } from '$lib/server/bunnycdn';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {
@@ -21,9 +22,7 @@ export const actions: Actions = {
 		const [item] = await db.select().from(media).where(eq(media.id, id)).limit(1);
 		if (!item) return;
 
-		const filename = extractFilenameFromUrl(item.url);
-		if (filename) await deleteFromBunnyCDN(filename);
-
+		// CDN delete skipped (BunnyCDN disabled)
 		await db.delete(media).where(eq(media.id, id));
 	}
 };
