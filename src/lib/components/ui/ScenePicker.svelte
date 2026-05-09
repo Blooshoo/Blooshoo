@@ -50,9 +50,7 @@
 	}
 </script>
 
-<span class="relative inline">
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<span
+<span class="relative inline"><!-- svelte-ignore a11y_no_static_element_interactions --><span
 		role="button"
 		tabindex="0"
 		onclick={() => (open = !open)}
@@ -63,12 +61,7 @@
 		style="color: var(--color-accent-teal); opacity: 0.7;"
 		title="Pick a scene…"
 		aria-label="Scene picker"
-	>
-		s
-	</span>
-
-	{#if open}
-		<div
+	>s</span>{#if open}<div
 			bind:this={menuEl}
 			class="absolute bottom-full left-1/2 z-50 mb-2 min-w-45 -translate-x-1/2 rounded-lg border border-white/8 bg-bloo-bg/95 p-2 shadow-xl backdrop-blur"
 		>
@@ -94,6 +87,4 @@
 					<span class="truncate">{s.name}</span>
 				</button>
 			{/each}
-		</div>
-	{/if}
-</span>
+		</div>{/if}</span>
