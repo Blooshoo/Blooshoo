@@ -2,7 +2,7 @@
 set -e
 
 echo "Running database migrations..."
-npx drizzle-kit push
+npm run db:migrate
 
 if [ -n "$ADMIN_USERNAME" ]; then
   echo "Seeding admin user..."
