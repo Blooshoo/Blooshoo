@@ -2,12 +2,7 @@
 set -e
 
 echo "Running database migrations..."
-npm run db:migrate
+node scripts/migrate.mjs
 
-if [ -n "$ADMIN_USERNAME" ]; then
-  echo "Seeding admin user..."
-  npm run seed
-fi
-
-echo "Starting blooshoo..."
-exec npx next start -H 0.0.0.0 -p "${PORT:-3000}"
+echo "Starting blooshoo (SvelteKit)..."
+exec node build/index.js

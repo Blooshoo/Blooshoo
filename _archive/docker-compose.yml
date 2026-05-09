@@ -15,9 +15,7 @@ services:
       retries: 5
 
   blooshoo:
-    build:
-      context: .
-      dockerfile: Dockerfile.svelte
+    build: .
     ports:
       - "${HOST_PORT:-7777}:3000"
     depends_on:
@@ -26,18 +24,9 @@ services:
     environment:
       DATABASE_URL: postgres://blooshoo:${POSTGRES_PASSWORD:-blooshoo}@postgres:5432/blooshoo
       NODE_ENV: production
-      AUTH_SECRET: ${AUTH_SECRET}
+      # better-auth — base URL for auth callbacks
       BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:7777}
-      BETTER_AUTH_TRUSTED_ORIGINS: ${BETTER_AUTH_TRUSTED_ORIGINS:-http://localhost:7777}
-      ORIGIN: ${ORIGIN:-http://localhost:7777}
-      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID:-}
-      DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET:-}
-      ALLOWED_DISCORD_IDS: ${ALLOWED_DISCORD_IDS:-}
-      BUNNYCDN_STORAGE_ZONE_NAME: ${BUNNYCDN_STORAGE_ZONE_NAME:-}
-      BUNNYCDN_STORAGE_API_KEY: ${BUNNYCDN_STORAGE_API_KEY:-}
-      BUNNYCDN_PULL_ZONE_URL: ${BUNNYCDN_PULL_ZONE_URL:-}
-      BUNNYCDN_STORAGE_REGION: ${BUNNYCDN_STORAGE_REGION:-de}
-      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      BETTER_AUTH_TRUSTED_ORIGINS: ${BETTER_AUTH_TRUSTED_ORIGINS:-http://localhost:7777,https://blooshoo.com}
     env_file:
       - path: .env.local
         required: false
@@ -47,7 +36,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 30s
+      start_period: 20s
 
 volumes:
   postgres_data:

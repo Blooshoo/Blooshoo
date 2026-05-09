@@ -1,43 +1,23 @@
-# Next.js
-.next/
-out/
+node_modules
 
-# Node
-node_modules/
-npm-debug.log*
-
-# Environment files
-.env.local
-.env.*.local
-.env
-
-# Database
-*.db
-*.db-shm
-*.db-wal
-
-# Build
-dist/
-build/
+# Output
+.output
+.vercel
+.netlify
+.wrangler
+/.svelte-kit
+/build
 
 # OS
 .DS_Store
 Thumbs.db
 
-# IDE
-.vscode/
-.idea/
-*.swp
+# Env
+.env
+.env.*
+!.env.example
+!.env.test
 
-# Debug
-*.log
-
-# TypeScript build cache
-tsconfig.tsbuildinfo
-
-# Claude Code project settings
-.claude/
-
-# Personal / planning docs (not source code)
-ORCHESTRATION_TEMPLATE*.md
-theissue.md
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*

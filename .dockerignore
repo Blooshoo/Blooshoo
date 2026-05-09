@@ -1,8 +1,7 @@
-.next/
 node_modules/
-svelte-app/node_modules/
-svelte-app/.svelte-kit/
-svelte-app/build/
+.svelte-kit/
+build/
+_archive/
 *.db
 *.db-shm
 *.db-wal
