@@ -1,34 +1,23 @@
 import { env } from '$env/dynamic/private';
 
-const BUNNYCDN_STORAGE_ZONE_NAME = env.BUNNYCDN_STORAGE_ZONE_NAME ?? '';
-const BUNNYCDN_STORAGE_API_KEY = env.BUNNYCDN_STORAGE_API_KEY ?? '';
-const BUNNYCDN_PULL_ZONE_URL = env.BUNNYCDN_PULL_ZONE_URL ?? '';
-const BUNNYCDN_STORAGE_REGION = env.BUNNYCDN_STORAGE_REGION ?? 'de';
-
-const REGION_HOSTS: Record<string, string> = {
-	de: 'storage.bunnycdn.com',
-	ny: 'ny.storage.bunnycdn.com',
-	la: 'la.storage.bunnycdn.com',
-	sg: 'sg.storage.bunnycdn.com',
-	syd: 'syd.storage.bunnycdn.com'
-};
-
-function getStorageHost(): string {
-	return REGION_HOSTS[BUNNYCDN_STORAGE_REGION] ?? REGION_HOSTS.de;
-}
+// BUNNY_CDN_URL  — storage API base, e.g. https://la.storage.bunnycdn.com/blooshoo
+// BUNNY_STORAGE_HOSTNAME — pull zone host, e.g. blooshoo.b-cdn.net
+// BUNNY_STORAGE_PASSWORD — read/write API key
+const storageBase = (env.BUNNY_CDN_URL ?? '').replace(/\/$/, '');
+const pullHost = (env.BUNNY_STORAGE_HOSTNAME ?? '').replace(/\/$/, '');
+const apiKey = env.BUNNY_STORAGE_PASSWORD ?? '';
 
 export async function uploadToBunnyCDN(
 	buffer: ArrayBuffer,
 	filename: string,
 	mimeType: string
 ): Promise<string> {
-	const host = getStorageHost();
-	const url = `https://${host}/${BUNNYCDN_STORAGE_ZONE_NAME}/${filename}`;
+	const url = `${storageBase}/${filename}`;
 
 	const res = await fetch(url, {
 		method: 'PUT',
 		headers: {
-			AccessKey: BUNNYCDN_STORAGE_API_KEY,
+			AccessKey: apiKey,
 			'Content-Type': mimeType
 		},
 		body: buffer
@@ -39,16 +28,15 @@ export async function uploadToBunnyCDN(
 		throw new Error(`BunnyCDN upload failed: ${res.status} ${text}`);
 	}
 
-	return `${BUNNYCDN_PULL_ZONE_URL.replace(/\/$/, '')}/${filename}`;
+	return `https://${pullHost}/${filename}`;
 }
 
 export async function deleteFromBunnyCDN(filename: string): Promise<void> {
-	const host = getStorageHost();
-	const url = `https://${host}/${BUNNYCDN_STORAGE_ZONE_NAME}/${filename}`;
+	const url = `${storageBase}/${filename}`;
 
 	const res = await fetch(url, {
 		method: 'DELETE',
-		headers: { AccessKey: BUNNYCDN_STORAGE_API_KEY }
+		headers: { AccessKey: apiKey }
 	});
 
 	if (!res.ok && res.status !== 404) {
@@ -57,11 +45,11 @@ export async function deleteFromBunnyCDN(filename: string): Promise<void> {
 }
 
 export function getBunnyCDNUrl(filename: string): string {
-	return `${BUNNYCDN_PULL_ZONE_URL.replace(/\/$/, '')}/${filename}`;
+	return `https://${pullHost}/${filename}`;
 }
 
 export function extractFilenameFromUrl(url: string): string | null {
-	const base = BUNNYCDN_PULL_ZONE_URL.replace(/\/$/, '');
-	if (!url.startsWith(base)) return null;
-	return url.slice(base.length + 1);
+	const prefix = `https://${pullHost}/`;
+	if (!url.startsWith(prefix)) return null;
+	return url.slice(prefix.length);
 }
