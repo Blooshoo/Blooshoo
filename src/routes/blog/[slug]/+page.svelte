@@ -28,7 +28,7 @@
 	<div class="content-block">
 		<a
 			href="/blog"
-			class="mb-8 inline-flex items-center gap-1.5 text-sm text-slate-500 transition-colors hover:text-cyan-400"
+			class="mb-8 inline-flex items-center gap-1.5 text-sm text-bloo-muted transition-colors hover:text-accent-teal"
 		>
 			<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 			{@html arrowLeftIcon}
@@ -42,11 +42,11 @@
 		{/if}
 
 		<header class="mb-8 space-y-4">
-			<h1 class="text-3xl font-bold leading-tight text-slate-100 sm:text-4xl" style="font-family: var(--font-heading)">
+			<h1 class="text-3xl font-bold leading-tight text-bloo-text sm:text-4xl" style="font-family: var(--font-heading)">
 				{data.post.title}
 			</h1>
 
-			<div class="flex flex-wrap items-center gap-3 text-sm text-slate-500">
+			<div class="flex flex-wrap items-center gap-3 text-sm text-bloo-muted">
 				{#if data.post.authorDisplayName}
 					<span>{data.post.authorDisplayName}</span>
 					<span>·</span>
@@ -60,7 +60,7 @@
 				<div class="flex flex-wrap gap-2">
 					{#each data.post.tags as tag (tag)}
 						<span
-							class="rounded-full border border-slate-700/50 bg-slate-800/40 px-3 py-1 text-xs text-slate-400"
+							class="rounded-full border border-white/8 bg-bloo-secondary/40 px-3 py-1 text-xs text-bloo-muted"
 						>
 							{tag}
 						</span>
@@ -69,7 +69,7 @@
 			{/if}
 		</header>
 
-		<article class="prose prose-invert prose-slate max-w-none">
+		<article class="prose-bloo">
 			<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 			{@html data.post.cleanContent}
 		</article>

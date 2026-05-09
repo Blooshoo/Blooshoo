@@ -13,8 +13,16 @@
 {#if isLoginPage}
 	{@render children()}
 {:else}
-	<div class="flex min-h-screen bg-slate-950">
-		<AdminSidebar />
+	<div class="flex min-h-screen bg-bloo-bg">
+		<!-- CRT scanline overlay -->
+		<div class="scanlines" aria-hidden="true"></div>
+
+		<!-- Desktop sidebar -->
+		<aside class="hidden w-56 shrink-0 flex-col border-r border-white/8 bg-bloo-card lg:flex">
+			<AdminSidebar />
+		</aside>
+
+		<!-- Main area -->
 		<div class="flex min-w-0 flex-1 flex-col">
 			<AdminHeader />
 			<main class="flex-1 overflow-y-auto p-6">

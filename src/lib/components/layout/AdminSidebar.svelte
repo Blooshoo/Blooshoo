@@ -34,8 +34,8 @@
 			href={item.href}
 			onclick={onNavClick}
 			class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 {active
-				? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shadow-glow-cyan-sm'
-				: 'border border-transparent text-slate-400 hover:bg-slate-800/40 hover:text-slate-200'}"
+				? 'border border-accent-teal/30 bg-accent-teal/10 text-accent-teal shadow-glow-teal-sm'
+				: 'border border-transparent text-bloo-muted hover:bg-bloo-card/60 hover:text-bloo-text'}"
 		>
 			<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 			{@html item.icon}
@@ -43,7 +43,7 @@
 		</a>
 	{/each}
 
-	<div class="my-2 border-t border-slate-800/60"></div>
+	<div class="my-2 border-t border-white/8"></div>
 
 	{#each bottomItems as item (item.href)}
 		{@const active = isActive(item.href, item.exact)}
@@ -51,8 +51,8 @@
 			href={item.href}
 			onclick={onNavClick}
 			class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 {active
-				? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30'
-				: 'border border-transparent text-slate-400 hover:bg-slate-800/40 hover:text-slate-200'}"
+				? 'border border-accent-teal/30 bg-accent-teal/10 text-accent-teal'
+				: 'border border-transparent text-bloo-muted hover:bg-bloo-card/60 hover:text-bloo-text'}"
 		>
 			<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 			{@html item.icon}

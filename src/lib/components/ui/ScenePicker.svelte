@@ -70,13 +70,13 @@
 	{#if open}
 		<div
 			bind:this={menuEl}
-			class="absolute bottom-full left-1/2 z-50 mb-2 min-w-45 -translate-x-1/2 rounded-lg border border-slate-700/60 bg-slate-900/95 p-2 shadow-xl backdrop-blur"
+			class="absolute bottom-full left-1/2 z-50 mb-2 min-w-45 -translate-x-1/2 rounded-lg border border-white/8 bg-bloo-bg/95 p-2 shadow-xl backdrop-blur"
 		>
-			<span class="mb-1 block px-2 py-1 text-[10px] uppercase tracking-widest text-slate-500">
+			<span class="mb-1 block px-2 py-1 text-[10px] uppercase tracking-widest text-bloo-muted">
 				Scene Picker
 			</span>
 			{#if scenes.length === 0}
-				<span class="block px-2 py-1 text-xs text-slate-500">Loading…</span>
+				<span class="block px-2 py-1 text-xs text-bloo-muted">Loading…</span>
 			{/if}
 			{#each scenes as s (s.name)}
 				<button
@@ -84,8 +84,8 @@
 					onclick={() => selectScene(s.name)}
 					class="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-xs transition-colors {s.name ===
 					currentScene
-						? 'bg-cyan-500/10 text-cyan-400'
-						: 'text-slate-300 hover:bg-slate-800/60'}"
+					? 'bg-accent-teal/10 text-accent-teal'
+					: 'text-bloo-text hover:bg-bloo-card/60'}"
 				>
 					<span
 						class="inline-block size-2 shrink-0 rounded-full"

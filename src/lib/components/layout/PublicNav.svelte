@@ -46,14 +46,14 @@
 
 	<!-- Mobile menu -->
 	{#if menuOpen}
-		<nav class="border-t border-slate-800/60 px-4 py-3 sm:hidden">
+		<nav class="border-t border-white/8 px-4 py-3 sm:hidden">
 			<div class="flex flex-col gap-1">
 				{#each navLinks as { href, label } (href)}
 					<a
 						{href}
 						class="rounded-md px-3 py-2 text-sm font-medium transition-colors {pathname === href
-							? 'bg-cyan-500/10 text-cyan-400'
-							: 'text-slate-400'}"
+							? 'bg-accent-teal/10 text-accent-teal'
+							: 'text-bloo-muted'}"
 						onclick={() => (menuOpen = false)}
 					>
 						{label}
