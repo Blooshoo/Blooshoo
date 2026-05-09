@@ -16,7 +16,7 @@ export async function requireAuth() {
   }
 
   return {
-    id: Number(session.user.id),
+    id: session.user.id,
     displayName: session.user.name,
     role: (session.user as Record<string, unknown>).role as
       | "admin"

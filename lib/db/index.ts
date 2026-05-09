@@ -1,12 +1,9 @@
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import Database from "better-sqlite3";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import * as schema from "./schema";
-import path from "path";
 
-const DB_PATH = process.env.DATABASE_PATH ?? path.join(process.cwd(), "blooshoo.db");
+const connectionString = process.env.DATABASE_URL!;
 
-const sqlite = new Database(DB_PATH);
+const client = postgres(connectionString);
 
-sqlite.pragma("journal_mode = WAL");
-
-export const db = drizzle(sqlite, { schema });
+export const db = drizzle(client, { schema });

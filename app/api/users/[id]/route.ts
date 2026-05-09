@@ -26,12 +26,12 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    const userId = parseInt(id, 10);
-    if (isNaN(userId)) {
+    const userId = id;
+    if (!userId) {
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
 
-    const currentUserId = Number(session.user.id);
+    const currentUserId = session.user.id;
 
     // Prevent deleting yourself
     if (userId === currentUserId) {
@@ -80,8 +80,8 @@ export async function PUT(
     }
 
     const { id } = await params;
-    const userId = parseInt(id, 10);
-    if (isNaN(userId)) {
+    const userId = id;
+    if (!userId) {
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
 

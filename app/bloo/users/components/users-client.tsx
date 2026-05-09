@@ -9,8 +9,8 @@ import { DeleteUserButton } from "./delete-user-button";
 import { ResetPasswordDialog } from "./reset-password-dialog";
 
 interface UsersClientProps {
-  userId: number;
-  username: string;
+  userId: string;
+  username: string | null;
   isCurrentUser: boolean;
 }
 

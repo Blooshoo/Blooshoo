@@ -13,11 +13,17 @@ export const metadata: Metadata = {
 };
 
 export default async function BlogPage() {
-  const allPosts = await db
-    .select()
-    .from(posts)
-    .where(eq(posts.status, "published"))
-    .orderBy(desc(posts.createdAt));
+  type PostRow = typeof posts.$inferSelect;
+  let allPosts: PostRow[] = [];
+  try {
+    allPosts = await db
+      .select()
+      .from(posts)
+      .where(eq(posts.status, "published"))
+      .orderBy(desc(posts.createdAt));
+  } catch {
+    // DB unavailable at build time — render empty state
+  }
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-16">

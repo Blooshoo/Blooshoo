@@ -31,7 +31,7 @@ interface ProjectRow {
   image: string | null;
   ownerType: "mine" | "friend";
   ownerName: string | null;
-  ownerId: number | null;
+  ownerId: string | null;
   featured: boolean;
   sortOrder: number;
   createdAt: Date;
@@ -63,7 +63,7 @@ export default async function ProjectsPage() {
   const role = (session?.user as Record<string, unknown>)?.role as
     | string
     | null;
-  const userId = session ? Number(session.user.id) : null;
+  const userId = session ? session.user.id : null;
 
   let allProjects: ProjectRow[];
 

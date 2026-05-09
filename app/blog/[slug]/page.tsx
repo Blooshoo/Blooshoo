@@ -15,12 +15,16 @@ interface Props {
 }
 
 export async function generateStaticParams() {
-  const published = await db
-    .select({ slug: posts.slug })
-    .from(posts)
-    .where(eq(posts.status, "published"));
+  try {
+    const published = await db
+      .select({ slug: posts.slug })
+      .from(posts)
+      .where(eq(posts.status, "published"));
 
-  return published.map((p) => ({ slug: p.slug }));
+    return published.map((p) => ({ slug: p.slug }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

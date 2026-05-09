@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const userId = Number(session.user.id);
+    const userId = session.user.id;
 
     const [user] = await db
       .select()
@@ -48,6 +48,13 @@ export async function POST(req: NextRequest) {
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    if (!user.passwordHash) {
+      return NextResponse.json(
+        { error: "Password login not enabled for this account" },
+        { status: 400 },
+      );
     }
 
     // Verify current password

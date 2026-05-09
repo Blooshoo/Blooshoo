@@ -16,7 +16,7 @@ export type ProjectCardData = {
   image: string | null;
   ownerType: string;
   ownerName: string | null;
-  ownerId: number | null;
+  ownerId: string | null;
   featured: boolean | null;
   sortOrder: number;
   createdAt: Date | number | string;

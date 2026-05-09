@@ -14,8 +14,8 @@ import { toast } from "sonner";
 import { Loader2, Trash2 } from "lucide-react";
 
 interface DeleteUserButtonProps {
-  userId: number;
-  username: string;
+  userId: string;
+  username: string | null;
   onDeleted: () => void;
 }
 

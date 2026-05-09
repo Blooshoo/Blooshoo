@@ -1,6 +1,5 @@
-# ---- deps: install all packages, compile native modules ----
+# ---- deps: install all packages ----
 FROM node:20-alpine AS deps
-RUN apk add --no-cache python3 make g++
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
@@ -12,14 +11,12 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
-# Stub DB for build-time generateStaticParams (produces an empty blog, fine)
-ENV DATABASE_PATH=/tmp/build.db
-ENV AUTH_SECRET=build-placeholder-32-chars-min
+ENV DATABASE_URL=postgresql://localhost/build-placeholder
+ENV AUTH_SECRET=build-placeholder-secret-32-chars!!
 # better-auth needs a base URL during build
 ENV BETTER_AUTH_URL=http://localhost:3000
 
-# Apply schema so better-sqlite3 doesn't throw at import time during build
-RUN npx drizzle-kit push && npm run build
+RUN npm run build
 
 # ---- runner: production image ----
 FROM node:20-alpine AS runner
@@ -28,7 +25,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Copy pre-compiled node_modules (includes native better-sqlite3 binary)
+# Copy pre-compiled node_modules
 COPY --from=deps    /app/node_modules ./node_modules
 # Next.js build output
 COPY --from=builder /app/.next        ./.next
@@ -40,7 +37,7 @@ COPY drizzle.config.ts     ./
 COPY lib/                  ./lib/
 COPY scripts/              ./scripts/
 COPY docker-entrypoint.sh  ./
-RUN chmod +x /app/docker-entrypoint.sh
+RUN sed -i 's/\r//' /app/docker-entrypoint.sh && chmod +x /app/docker-entrypoint.sh
 
 EXPOSE 3000
 ENTRYPOINT ["/app/docker-entrypoint.sh"]

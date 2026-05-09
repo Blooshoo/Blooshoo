@@ -18,7 +18,7 @@ export async function GET() {
     const role = (session?.user as Record<string, unknown>)?.role as
       | string
       | null;
-    const userId = session ? Number(session.user.id) : null;
+    const userId = session ? session.user.id : null;
 
     let results;
 
@@ -142,7 +142,7 @@ export async function POST(req: NextRequest) {
     const safeFeatured = role === "admin" ? (featured ?? false) : false;
 
     const now = new Date();
-    const ownerId = Number(session.user.id);
+    const ownerId = session.user.id;
     const [project] = await db
       .insert(projects)
       .values({
