@@ -1,0 +1,189 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
+
+/* ─── Design Tokens ───────────────────────────────────────────────── */
+@theme {
+	/* Fonts */
+	--font-heading: 'VT323', 'Press Start 2P', monospace;
+	--font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+	--font-sans: 'IBM Plex Mono', monospace;
+
+	/* Glow box-shadows — cyan */
+	--shadow-glow-cyan-sm: 0 0 8px rgb(34 211 238 / 0.3);
+	--shadow-glow-cyan-md: 0 0 16px rgb(34 211 238 / 0.4);
+	--shadow-glow-cyan-lg: 0 0 32px rgb(34 211 238 / 0.5);
+
+	/* Glow box-shadows — fuchsia */
+	--shadow-glow-fuchsia-sm: 0 0 8px rgb(232 121 249 / 0.3);
+	--shadow-glow-fuchsia-md: 0 0 16px rgb(232 121 249 / 0.4);
+	--shadow-glow-fuchsia-lg: 0 0 32px rgb(232 121 249 / 0.5);
+
+	/* Glow box-shadows — teal accent (brand) */
+	--shadow-glow-teal-sm: 0 0 8px rgb(0 255 204 / 0.3);
+	--shadow-glow-teal-md: 0 0 16px rgb(0 255 204 / 0.4);
+	--shadow-glow-teal-lg: 0 0 32px rgb(0 255 204 / 0.5);
+
+	/* Card / panel shadows */
+	--shadow-card: 0 4px 24px rgb(0 0 0 / 0.4);
+	--shadow-card-hover: 0 8px 32px rgb(0 0 0 / 0.5);
+	--shadow-topbar: 0 1px 0 rgb(255 255 255 / 0.06);
+	--shadow-sidebar: 1px 0 0 rgb(255 255 255 / 0.06);
+	--shadow-login-card: 0 16px 48px rgb(0 0 0 / 0.6);
+
+	/* Drop-shadow glows (for svg/text) */
+	--drop-shadow-glow-cyan-sm: drop-shadow(0 0 4px rgb(34 211 238 / 0.5));
+	--drop-shadow-glow-cyan-md: drop-shadow(0 0 8px rgb(34 211 238 / 0.6));
+	--drop-shadow-glow-cyan-lg: drop-shadow(0 0 16px rgb(34 211 238 / 0.7));
+	--drop-shadow-glow-fuchsia-sm: drop-shadow(0 0 4px rgb(232 121 249 / 0.5));
+	--drop-shadow-glow-fuchsia-md: drop-shadow(0 0 8px rgb(232 121 249 / 0.6));
+	--drop-shadow-glow-fuchsia-lg: drop-shadow(0 0 16px rgb(232 121 249 / 0.7));
+	--drop-shadow-glow-teal-md: drop-shadow(0 0 8px rgb(0 255 204 / 0.6));
+
+	/* Blur orb sizes */
+	--blur-orb-sm: 60px;
+	--blur-orb-md: 100px;
+	--blur-orb-lg: 160px;
+
+	/* Micro font sizes */
+	--font-size-label-xs: 0.625rem;
+	--font-size-label: 0.6875rem;
+	--font-size-ui: 0.75rem;
+
+	/* Discord brand */
+	--color-discord: #5865f2;
+	--color-discord-muted: #9aa0e8;
+	--color-discord-surface: rgb(88 101 242 / 0.1);
+
+	/* Brand accent (teal) */
+	--color-accent-teal: #00ffcc;
+	--color-accent-blue: #00aaff;
+	--color-accent-magenta: #ff44ff;
+	--color-accent-amber: #ffaa00;
+	--color-destructive: #ff4466;
+}
+
+/* ─── Base Styles ─────────────────────────────────────────────────── */
+:root {
+	font-family: var(--font-mono);
+	color-scheme: dark;
+}
+
+body {
+	background-color: #0a0a0f;
+	color: #e8e8e8;
+	font-family: var(--font-mono);
+}
+
+* {
+	border-color: rgb(255 255 255 / 0.08);
+}
+
+/* ─── Component Utilities ─────────────────────────────────────────── */
+@layer components {
+	.input-dark {
+		@apply w-full rounded-md border border-slate-800/60 bg-slate-900/60 px-3 py-2 text-sm text-slate-200 placeholder-slate-500 transition-colors duration-200 focus:border-cyan-500/50 focus:ring-0 focus:outline-none;
+	}
+
+	.label-caps {
+		@apply text-xs font-semibold uppercase tracking-widest text-slate-400;
+	}
+
+	.btn-cyan {
+		@apply inline-flex items-center gap-2 rounded-md border border-cyan-500/50 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-400 transition-all duration-200 hover:border-cyan-400 hover:bg-cyan-500/20 hover:shadow-glow-cyan-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50 disabled:pointer-events-none disabled:opacity-50;
+	}
+
+	.btn-ghost {
+		@apply inline-flex items-center gap-2 rounded-md border border-slate-700/50 bg-transparent px-4 py-2 text-sm font-medium text-slate-400 transition-all duration-200 hover:border-slate-600 hover:bg-slate-800/40 hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500/50 disabled:pointer-events-none disabled:opacity-50;
+	}
+
+	.btn-destructive {
+		@apply inline-flex items-center gap-2 rounded-md border border-rose-500/40 bg-rose-500/10 px-4 py-2 text-sm font-medium text-rose-400 transition-all duration-200 hover:border-rose-400 hover:bg-rose-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/50 disabled:pointer-events-none disabled:opacity-50;
+	}
+
+	/* Nav bracket hover effect */
+	.nav-link {
+		position: relative;
+		color: theme(colors.slate.400);
+		transition: color 0.2s ease;
+	}
+
+	.nav-link::before,
+	.nav-link::after {
+		opacity: 0;
+		transition: opacity 0.2s ease;
+		color: var(--color-accent-teal);
+	}
+
+	.nav-link::before {
+		content: '[';
+		margin-right: 0.15em;
+	}
+
+	.nav-link::after {
+		content: ']';
+		margin-left: 0.15em;
+	}
+
+	.nav-link:hover {
+		color: var(--color-accent-teal);
+	}
+
+	.nav-link:hover::before,
+	.nav-link:hover::after {
+		opacity: 1;
+	}
+
+	/* Content panel / card glass effect */
+	.content-panel {
+		background: rgb(0 0 0 / 0.88);
+		backdrop-filter: blur(4px);
+		-webkit-backdrop-filter: blur(4px);
+		border: 1px solid rgb(255 255 255 / 0.06);
+	}
+
+	/* Logo glitch */
+	.logo-glitch {
+		font-family: var(--font-heading);
+		color: var(--color-accent-teal);
+		position: relative;
+		display: inline-block;
+		letter-spacing: 0.08em;
+		text-shadow:
+			-2px -2px 0 rgb(0 170 255 / 0.7),
+			2px 2px 0 rgb(255 68 255 / 0.7);
+	}
+}
+
+/* ─── CRT Scanlines ───────────────────────────────────────────────── */
+.scanlines {
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	z-index: 1;
+	background: repeating-linear-gradient(
+		to bottom,
+		transparent,
+		transparent 3px,
+		rgb(0 0 0 / 0.06) 3px,
+		rgb(0 0 0 / 0.06) 4px
+	);
+}
+
+/* ─── Blinking cursor ─────────────────────────────────────────────── */
+@keyframes blink {
+	0%,
+	50% {
+		opacity: 1;
+	}
+	51%,
+	100% {
+		opacity: 0;
+	}
+}
+
+.blink-cursor::after {
+	content: '_';
+	color: var(--color-accent-teal);
+	animation: blink 700ms step-end infinite;
+}
