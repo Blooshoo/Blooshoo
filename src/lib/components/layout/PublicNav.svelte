@@ -10,6 +10,8 @@
 
 	let menuOpen = $state(false);
 	const pathname = $derived($page.url.pathname);
+
+	const menuIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>`;
 </script>
 
 <header class="sticky top-0 z-50 border-b border-white/8 content-panel">
@@ -37,22 +39,8 @@
 			aria-label="Open navigation"
 			onclick={() => (menuOpen = !menuOpen)}
 		>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				width="20"
-				height="20"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				class="lucide lucide-menu"
-			>
-				<line x1="4" x2="20" y1="6" y2="6" />
-				<line x1="4" x2="20" y1="12" y2="12" />
-				<line x1="4" x2="20" y1="18" y2="18" />
-			</svg>
+			<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+			{@html menuIcon}
 		</button>
 	</div>
 

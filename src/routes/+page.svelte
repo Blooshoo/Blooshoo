@@ -10,6 +10,8 @@
 			day: 'numeric'
 		});
 	}
+
+	const arrowRightIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>`;
 </script>
 
 <svelte:head>
@@ -40,7 +42,8 @@
 					class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-400 transition-colors hover:text-cyan-400"
 				>
 					Read the blog
-					<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+					<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+					{@html arrowRightIcon}
 				</a>
 				<span class="text-slate-600">·</span>
 				<a
@@ -48,7 +51,8 @@
 					class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-400 transition-colors hover:text-cyan-400"
 				>
 					See projects
-					<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+					<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+					{@html arrowRightIcon}
 				</a>
 			</div>
 		</section>

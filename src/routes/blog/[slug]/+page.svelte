@@ -10,6 +10,8 @@
 			day: 'numeric'
 		});
 	}
+
+	const arrowLeftIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>`;
 </script>
 
 <svelte:head>
@@ -28,7 +30,8 @@
 			href="/blog"
 			class="mb-8 inline-flex items-center gap-1.5 text-sm text-slate-500 transition-colors hover:text-cyan-400"
 		>
-			<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+			<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+			{@html arrowLeftIcon}
 			Back to blog
 		</a>
 
