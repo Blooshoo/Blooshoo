@@ -3,14 +3,16 @@ import { drizzleAdapter } from '@better-auth/drizzle-adapter';
 import { db } from './db';
 import * as schema from './db/schema';
 import bcrypt from 'bcryptjs';
-import {
+import { env } from '$env/dynamic/private';
+
+const {
 	AUTH_SECRET,
 	BETTER_AUTH_URL,
 	BETTER_AUTH_TRUSTED_ORIGINS,
 	DISCORD_CLIENT_ID,
 	DISCORD_CLIENT_SECRET,
 	ALLOWED_DISCORD_IDS
-} from '$env/static/private';
+} = env;
 
 const allowedDiscordIds = new Set(
 	ALLOWED_DISCORD_IDS.split(',')
@@ -44,6 +46,11 @@ export const auth = betterAuth({
 				type: 'string',
 				required: false,
 				defaultValue: 'contributor',
+				input: false
+			},
+			username: {
+				type: 'string',
+				required: false,
 				input: false
 			}
 		}

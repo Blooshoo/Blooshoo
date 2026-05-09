@@ -1,9 +1,9 @@
-import {
-	BUNNYCDN_STORAGE_ZONE_NAME,
-	BUNNYCDN_STORAGE_API_KEY,
-	BUNNYCDN_PULL_ZONE_URL,
-	BUNNYCDN_STORAGE_REGION
-} from '$env/static/private';
+import { env } from '$env/dynamic/private';
+
+const BUNNYCDN_STORAGE_ZONE_NAME = env.BUNNYCDN_STORAGE_ZONE_NAME ?? '';
+const BUNNYCDN_STORAGE_API_KEY = env.BUNNYCDN_STORAGE_API_KEY ?? '';
+const BUNNYCDN_PULL_ZONE_URL = env.BUNNYCDN_PULL_ZONE_URL ?? '';
+const BUNNYCDN_STORAGE_REGION = env.BUNNYCDN_STORAGE_REGION ?? 'de';
 
 const REGION_HOSTS: Record<string, string> = {
 	de: 'storage.bunnycdn.com',
