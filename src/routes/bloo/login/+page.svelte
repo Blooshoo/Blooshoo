@@ -1,10 +1,6 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
 	import { page } from '$app/stores';
 	import { authClient } from '$lib/auth-client';
-	import type { ActionData } from './$types';
-
-	let { form } = $props<{ form: ActionData }>();
 
 	let discordLoading = $state(false);
 	let discordError = $state('');
@@ -53,11 +49,11 @@
 			<p class="mt-1 text-sm text-slate-500">Sign in to continue</p>
 		</div>
 
-		{#if form?.error || discordError}
+		{#if discordError}
 			<div
 				class="mb-4 rounded-lg border border-red-500/30 bg-red-500/5 px-4 py-3 text-sm text-red-400"
 			>
-				{form?.error ?? discordError}
+				{discordError}
 			</div>
 		{/if}
 
@@ -72,40 +68,8 @@
 			{discordLoading ? 'Redirecting…' : 'Continue with Discord'}
 		</button>
 
-		<div class="relative my-5 flex items-center">
-			<div class="flex-grow border-t border-slate-800"></div>
-			<span class="mx-3 text-xs text-slate-600">or</span>
-			<div class="flex-grow border-t border-slate-800"></div>
-		</div>
-
-		<form use:enhance method="POST" class="space-y-5">
-			<div class="space-y-2">
-				<label class="label-caps" for="email">Email</label>
-				<input
-					id="email"
-					name="email"
-					type="email"
-					required
-					class="input-dark"
-					placeholder="you@example.com"
-					autocomplete="email"
-				/>
-			</div>
-
-			<div class="space-y-2">
-				<label class="label-caps" for="password">Password</label>
-				<input
-					id="password"
-					name="password"
-					type="password"
-					required
-					class="input-dark"
-					placeholder="••••••••"
-					autocomplete="current-password"
-				/>
-			</div>
-
-			<button type="submit" class="btn-cyan w-full justify-center">Sign in</button>
-		</form>
+		<p class="mt-6 text-center text-xs text-slate-600">
+			Access is restricted to authorised Discord accounts.
+		</p>
 	</div>
 </div>

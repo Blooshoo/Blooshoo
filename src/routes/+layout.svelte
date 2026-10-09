@@ -8,7 +8,9 @@
 
 	let { children } = $props();
 
-	const isAdmin = $derived($page.url.pathname.startsWith('/bloo'));
+	const isAdmin = $derived(
+		$page.url.pathname === '/bloo' || $page.url.pathname.startsWith('/bloo/')
+	);
 </script>
 
 {#if !isAdmin}

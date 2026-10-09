@@ -35,5 +35,5 @@
 		</div>
 	{/if}
 
-	<PostForm post={data.post} action="?/update" error={form?.error} />
+	<PostForm post={data.post} media={data.media} action="?/update" error={form?.error} />
 </div>

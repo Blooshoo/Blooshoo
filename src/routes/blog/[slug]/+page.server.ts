@@ -3,6 +3,7 @@ import { posts, users } from '$lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 import sanitizeHtml from 'sanitize-html';
+import { parsePostTags } from '$lib/server/post-utils';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params }) => {
@@ -62,7 +63,7 @@ export const load: PageServerLoad = async ({ params }) => {
 	return {
 		post: {
 			...row,
-			tags: JSON.parse(row.tags) as string[],
+			tags: parsePostTags(row.tags),
 			cleanContent
 		}
 	};

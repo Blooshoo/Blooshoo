@@ -5,11 +5,12 @@ import { pgTable, text, integer, boolean, timestamp, serial } from "drizzle-orm/
 // better-auth's core schema. email is auto-populated from username
 // by the username plugin; emailVerified defaults to true since
 // this is a private admin panel without email verification.
+// Auth is Discord-only; there is intentionally no password store
+// (users.password_hash was removed 2026-08-07).
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
   username: text("username").unique(),
   displayName: text("display_name").notNull(),
-  passwordHash: text("password_hash"),
   role: text("role", { enum: ["admin", "contributor"] as const }).notNull(),
   createdAt: timestamp("created_at")
     .notNull()
@@ -50,6 +51,16 @@ export const account = pgTable("account", {
   password: text("password"),
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updated_at").notNull(),
+});
+
+// Discord IDs allowed to start or continue a session. The owner ID is also
+// kept as a code-level guard, so it cannot be removed by a panel mistake.
+export const discordAllowlist = pgTable("discord_allowlist", {
+  discordId: text("discord_id").primaryKey(),
+  addedAt: timestamp("added_at")
+    .notNull()
+    .$default(() => new Date()),
+  addedBy: text("added_by"),
 });
 
 export const verification = pgTable("verification", {
@@ -132,6 +143,17 @@ export const messages = pgTable("messages", {
     .$default(() => new Date()),
 });
 
+// ─── Bot canary stats ────────────────────────────────────────────────
+// A single row (id=1) stores the deliberately minimal contact-form
+// counter. No submitted bot content or identifying data is retained.
+export const botStats = pgTable("bot_stats", {
+  id: integer("id").primaryKey(),
+  attempts: integer("attempts").notNull().default(0),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .$default(() => new Date()),
+});
+
 // ─── Types ────────────────────────────────────────────────────────────
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -143,6 +165,8 @@ export type Media = typeof media.$inferSelect;
 export type NewMedia = typeof media.$inferInsert;
 export type Message = typeof messages.$inferSelect;
 export type NewMessage = typeof messages.$inferInsert;
+export type BotStats = typeof botStats.$inferSelect;
 export type Session = typeof session.$inferSelect;
 export type Account = typeof account.$inferSelect;
+export type DiscordAllowlistEntry = typeof discordAllowlist.$inferSelect;
 export type Verification = typeof verification.$inferSelect;

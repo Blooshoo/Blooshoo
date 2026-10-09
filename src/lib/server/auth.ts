@@ -1,25 +1,27 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from '@better-auth/drizzle-adapter';
+import { eq } from 'drizzle-orm';
 import { db } from './db';
 import * as schema from './db/schema';
-import bcrypt from 'bcryptjs';
+import { requireEnv } from './env';
+import {
+	ensureDiscordAllowlistSeeded,
+	isDiscordIdAllowed,
+	OWNER_DISCORD_ID
+} from './discord-access';
 import { env } from '$env/dynamic/private';
 
-const {
-	AUTH_SECRET,
-	BETTER_AUTH_URL,
-	BETTER_AUTH_TRUSTED_ORIGINS,
-	DISCORD_CLIENT_ID,
-	DISCORD_CLIENT_SECRET,
-	ALLOWED_DISCORD_IDS
-} = env;
-
-const allowedDiscordIds = new Set(
-	ALLOWED_DISCORD_IDS.split(',')
-			.map((id: string) => id.trim())
-		.filter(Boolean)
-);
-
+// ── Environment ────────────────────────────────────────────────────────
+// Fail loudly at boot: no silent default secrets, no confusing .split()
+// crashes when a variable is unset.
+const AUTH_SECRET = requireEnv('AUTH_SECRET', {
+	minLength: 32,
+	forbidden: ['local-dev-secret-change-in-prod-123!', 'build-placeholder-secret-32-chars!!']
+});
+const BETTER_AUTH_URL = env.BETTER_AUTH_URL ?? 'http://localhost:7777';
+const BETTER_AUTH_TRUSTED_ORIGINS = env.BETTER_AUTH_TRUSTED_ORIGINS;
+const DISCORD_CLIENT_ID = env.DISCORD_CLIENT_ID ?? '';
+const DISCORD_CLIENT_SECRET = env.DISCORD_CLIENT_SECRET ?? '';
 export const auth = betterAuth({
 	secret: AUTH_SECRET,
 	baseURL: BETTER_AUTH_URL,
@@ -71,6 +73,9 @@ export const auth = betterAuth({
 		max: 10
 	},
 
+	// Discord is the single sign-in provider. The email/password path was
+	// removed: it was dead code (session cookie never forwarded) with two
+	// competing password stores (users.password_hash vs account.password).
 	socialProviders: {
 		discord: {
 			clientId: DISCORD_CLIENT_ID,
@@ -78,36 +83,42 @@ export const auth = betterAuth({
 		}
 	},
 
-	emailAndPassword: {
-		enabled: true,
-		password: {
-			hash: async (password: string) => bcrypt.hash(password, 12),
-			verify: async ({ hash, password }: { hash: string; password: string }) =>
-				bcrypt.compare(password, hash)
-		},
-		disableSignUp: true
-	},
-
 	databaseHooks: {
 		user: {
 			create: {
 				before: async (user) => {
-					if (!user.username) {
-						const derived = (user.email?.split('@')[0] ?? user.id)
-							.toLowerCase()
-							.replace(/[^a-z0-9_]/g, '_');
-						return { data: { ...user, username: derived } };
-					}
-					return { data: user };
+					// Bootstrap: the first user to sign in (empty users table)
+					// becomes admin, so a fresh Discord-only deploy is usable.
+					const isFirstUser = (await db.$count(schema.users)) === 0;
+					const derived = (user.email?.split('@')[0] ?? user.id)
+						.toLowerCase()
+						.replace(/[^a-z0-9_]/g, '_');
+					return {
+						data: {
+							...user,
+							username: user.username ?? derived,
+							...(isFirstUser ? { role: 'admin' } : {})
+						}
+					};
 				}
 			}
 		},
 		account: {
 			create: {
 				before: async (accountData) => {
+					if (accountData.providerId === 'discord') {
+						await ensureDiscordAllowlistSeeded();
+						if (accountData.accountId === OWNER_DISCORD_ID) {
+							await db
+								.update(schema.users)
+								.set({ role: 'admin' })
+								.where(eq(schema.users.id, accountData.userId));
+						}
+					}
+
 					if (
 						accountData.providerId === 'discord' &&
-						!allowedDiscordIds.has(accountData.accountId)
+						!(await isDiscordIdAllowed(accountData.accountId))
 					) {
 						throw new Error('Your Discord account is not authorised to access this panel.');
 					}

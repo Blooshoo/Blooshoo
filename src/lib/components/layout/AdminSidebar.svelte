@@ -10,10 +10,6 @@
 		{ href: '/bloo/messages', label: 'Messages', exact: false, icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>` }
 	];
 
-	const bottomItems = [
-		{ href: '/bloo/change-password', label: 'Change Password', exact: false, icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-key-round"><path d="M2 18v3c0 .6.4 1 1 1h4v-3h3v-3h2l1.4-1.4a6.5 6.5 0 1 0-4-4Z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg>` }
-	];
-
 	let { onNavClick = undefined } = $props<{ onNavClick?: () => void }>();
 
 	const pathname = $derived($page.url.pathname);
@@ -43,20 +39,4 @@
 		</a>
 	{/each}
 
-	<div class="my-2 border-t border-white/8"></div>
-
-	{#each bottomItems as item (item.href)}
-		{@const active = isActive(item.href, item.exact)}
-		<a
-			href={item.href}
-			onclick={onNavClick}
-			class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 {active
-				? 'border border-accent-teal/30 bg-accent-teal/10 text-accent-teal'
-				: 'border border-transparent text-bloo-muted hover:bg-bloo-card/60 hover:text-bloo-text'}"
-		>
-			<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-			{@html item.icon}
-			{item.label}
-		</a>
-	{/each}
 </nav>

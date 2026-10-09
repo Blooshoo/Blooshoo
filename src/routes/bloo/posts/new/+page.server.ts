@@ -1,10 +1,19 @@
 import { redirect, fail } from '@sveltejs/kit';
+import { eq } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { posts } from '$lib/server/db/schema';
+import {
+	databaseErrorCode,
+	formString,
+	isUniqueConstraintError,
+	normalizePostSlug,
+	derivePostExcerpt
+} from '$lib/server/post-utils';
+import { getImageMedia } from '$lib/server/media-utils';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {
-	return {};
+	return { media: await getImageMedia() };
 };
 
 export const actions: Actions = {
@@ -12,16 +21,16 @@ export const actions: Actions = {
 		if (!locals.user) redirect(302, '/bloo/login');
 
 		const data = await request.formData();
-		const title = (data.get('title') as string)?.trim();
-		const slug = (data.get('slug') as string)?.trim();
-		const content = (data.get('content') as string) ?? '';
-		const excerpt = (data.get('excerpt') as string)?.trim() ?? '';
-		const coverImage = (data.get('coverImage') as string)?.trim() ?? '';
-		const tagsRaw = (data.get('tags') as string) ?? '';
-		const status = (data.get('status') as string) === 'published' ? 'published' : 'draft';
+		const title = formString(data, 'title').trim();
+		const content = formString(data, 'content');
+		const slug = normalizePostSlug(formString(data, 'slug')) || normalizePostSlug(title);
+		const excerpt = formString(data, 'excerpt').trim() || derivePostExcerpt(content);
+		const coverImage = formString(data, 'coverImage').trim();
+		const tagsRaw = formString(data, 'tags');
+		const status = formString(data, 'status') === 'published' ? 'published' : 'draft';
 
 		if (!title || !slug) {
-			return fail(400, { error: 'Title and slug are required' });
+			return fail(400, { error: 'Add a title that can be used to create the post URL.' });
 		}
 
 		const tags = JSON.stringify(
@@ -31,16 +40,36 @@ export const actions: Actions = {
 				.filter(Boolean)
 		);
 
-		await db.insert(posts).values({
-			title,
-			slug,
-			content,
-			excerpt,
-			coverImage,
-			tags,
-			status,
-			authorId: locals.user.id
-		});
+		try {
+			const [existing] = await db
+				.select({ id: posts.id })
+				.from(posts)
+				.where(eq(posts.slug, slug))
+				.limit(1);
+			if (existing) {
+				return fail(400, { error: 'That slug is already in use. Choose a different one.' });
+			}
+
+			await db.insert(posts).values({
+				title,
+				slug,
+				content,
+				excerpt,
+				coverImage,
+				tags,
+				status,
+				authorId: locals.user.id
+			});
+		} catch (error) {
+			if (isUniqueConstraintError(error)) {
+				return fail(400, { error: 'That slug is already in use. Choose a different one.' });
+			}
+
+			console.error('Post creation failed', { code: databaseErrorCode(error) });
+			return fail(503, {
+				error: 'The post service is temporarily unavailable. Nothing was published; please try again.'
+			});
+		}
 
 		redirect(302, '/bloo/posts');
 	}

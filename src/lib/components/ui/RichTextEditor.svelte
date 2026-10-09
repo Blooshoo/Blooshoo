@@ -17,8 +17,19 @@
 	const linkIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`;
 	const imageIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>`;
 
+	interface MediaItem {
+		id: number;
+		filename: string;
+		originalName: string;
+		url: string;
+		mimeType: string;
+	}
+
 	// ---- Props ----
-	let { content = $bindable('') }: { content?: string } = $props();
+	let {
+		content = $bindable(''),
+		media = []
+	}: { content?: string; media?: MediaItem[] } = $props();
 
 	// ---- State ----
 	let editorEl = $state<HTMLDivElement>();
@@ -28,9 +39,8 @@
 	// link popover
 	let showLinkInput = $state(false);
 	let linkUrl = $state('');
-	// image popover
-	let showImageInput = $state(false);
-	let imageUrl = $state('');
+	// media picker
+	let showMediaPicker = $state(false);
 
 	// Active state — updated whenever the editor state changes
 	let isBold = $state(false);
@@ -104,11 +114,10 @@
 		showLinkInput = false;
 	}
 
-	function addImage() {
-		if (!editor || !imageUrl) return;
-		editor.chain().focus().setImage({ src: imageUrl }).run();
-		imageUrl = '';
-		showImageInput = false;
+	function insertMediaImage(item: MediaItem) {
+		if (!editor) return;
+		editor.chain().focus().setImage({ src: item.url, alt: item.originalName }).run();
+		showMediaPicker = false;
 	}
 
 	function btnClass(active: boolean) {
@@ -127,14 +136,14 @@
 	{#if isReady && editor}
 		<div class="flex flex-wrap items-center gap-0.5 border-b border-cyan-400/10 bg-cyan-400/3 px-2 py-1.5">
 			<!-- Bold -->
-			<button type="button" class={btnClass(isBold)} title="Bold"
+			<button type="button" class={btnClass(isBold)} title="Bold" aria-label="Bold"
 				onclick={() => editor?.chain().focus().toggleBold().run()}>
 				<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 				{@html boldIcon}
 			</button>
 
 			<!-- Italic -->
-			<button type="button" class={btnClass(isItalic)} title="Italic"
+			<button type="button" class={btnClass(isItalic)} title="Italic" aria-label="Italic"
 				onclick={() => editor?.chain().focus().toggleItalic().run()}>
 				<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 				{@html italicIcon}
@@ -143,14 +152,14 @@
 			<span class="mx-0.5 h-4 w-px bg-cyan-400/15"></span>
 
 			<!-- H1 -->
-			<button type="button" class={btnClass(isH1)} title="Heading 1"
+			<button type="button" class={btnClass(isH1)} title="Heading 1" aria-label="Heading 1"
 				onclick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}>
 				<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 				{@html h1Icon}
 			</button>
 
 			<!-- H2 -->
-			<button type="button" class={btnClass(isH2)} title="Heading 2"
+			<button type="button" class={btnClass(isH2)} title="Heading 2" aria-label="Heading 2"
 				onclick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}>
 				<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 				{@html h2Icon}
@@ -159,14 +168,14 @@
 			<span class="mx-0.5 h-4 w-px bg-cyan-400/15"></span>
 
 			<!-- Bullet List -->
-			<button type="button" class={btnClass(isBullet)} title="Bullet list"
+			<button type="button" class={btnClass(isBullet)} title="Bullet list" aria-label="Bullet list"
 				onclick={() => editor?.chain().focus().toggleBulletList().run()}>
 				<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 				{@html listIcon}
 			</button>
 
 			<!-- Ordered List -->
-			<button type="button" class={btnClass(isOrdered)} title="Ordered list"
+			<button type="button" class={btnClass(isOrdered)} title="Ordered list" aria-label="Ordered list"
 				onclick={() => editor?.chain().focus().toggleOrderedList().run()}>
 				<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 				{@html listOrderedIcon}
@@ -175,21 +184,20 @@
 			<span class="mx-0.5 h-4 w-px bg-cyan-400/15"></span>
 
 			<!-- Link -->
-			<button type="button" class={btnClass(isLink)} title="Link"
+			<button type="button" class={btnClass(isLink)} title="Link" aria-label="Link"
 				onclick={() => {
 					linkUrl = editor?.getAttributes('link').href ?? '';
 					showLinkInput = true;
-					showImageInput = false;
+					showMediaPicker = false;
 				}}>
 				<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 				{@html linkIcon}
 			</button>
 
-			<!-- Image -->
-			<button type="button" class={btnClass(false)} title="Image"
+			<!-- Image from Media -->
+			<button type="button" class={btnClass(showMediaPicker)} title="Insert image from Media" aria-label="Insert image from Media"
 				onclick={() => {
-					imageUrl = '';
-					showImageInput = true;
+					showMediaPicker = true;
 					showLinkInput = false;
 				}}>
 				<!-- eslint-disable-next-line svelte/no-at-html-tags -->
@@ -203,6 +211,7 @@
 				type="color"
 				class="size-5 cursor-pointer rounded border-0 bg-transparent p-0"
 				title="Text color"
+				aria-label="Text color"
 				oninput={(e) => editor?.chain().focus().setColor(e.currentTarget.value).run()}
 			/>
 		</div>
@@ -229,25 +238,40 @@
 			</div>
 		{/if}
 
-		<!-- Image popover -->
-		{#if showImageInput}
-			<div class="flex items-center gap-2 border-b border-cyan-400/8 bg-cyan-400/4 px-2 py-1.5">
-				<input
-					type="url"
-					bind:value={imageUrl}
-					placeholder="https://example.com/image.jpg"
-					class="h-7 flex-1 rounded border border-cyan-400/20 bg-slate-950 px-2 font-mono text-xs text-slate-200 placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none"
+		<!-- Media picker -->
+		{#if showMediaPicker}
+			<div class="border-b border-cyan-400/8 bg-cyan-400/4 px-2 py-2">
+				<div class="mb-2 flex items-center justify-between gap-2">
+					<p class="font-mono text-xs text-slate-300">Choose an image from Media</p>
+					<button
+						type="button"
+						class="text-xs text-slate-500 hover:text-slate-200"
+						onclick={() => (showMediaPicker = false)}
+						aria-label="Close media picker"
+					>✕</button>
+				</div>
 
-					onkeydown={(e) => {
-						if (e.key === 'Enter') { e.preventDefault(); addImage(); }
-						if (e.key === 'Escape') { showImageInput = false; imageUrl = ''; }
-					}}
-				/>
-				<button type="button"
-					class="rounded border border-cyan-400/30 px-2 py-0.5 font-mono text-xs text-cyan-400 transition-colors hover:bg-cyan-400 hover:text-slate-900"
-					onclick={addImage}>Add</button>
-				<button type="button" class="text-xs text-slate-500 hover:text-slate-200"
-					onclick={() => { showImageInput = false; imageUrl = ''; }}>✕</button>
+				{#if media.length > 0}
+					<div class="grid max-h-64 grid-cols-2 gap-2 overflow-y-auto sm:grid-cols-3">
+						{#each media as item (item.id)}
+							<button
+								type="button"
+								class="group overflow-hidden rounded border border-cyan-400/10 text-left transition-colors hover:border-cyan-400/50"
+								onclick={() => insertMediaImage(item)}
+							>
+								<img src={item.url} alt={item.originalName} class="h-20 w-full object-cover" />
+								<span class="block truncate px-2 py-1 font-mono text-[10px] text-slate-400 group-hover:text-cyan-300">
+									{item.originalName}
+								</span>
+							</button>
+						{/each}
+					</div>
+				{:else}
+					<p class="py-3 text-xs text-slate-500">
+						No uploaded images yet.
+						<a href="/bloo/media" target="_blank" rel="noreferrer" class="text-cyan-400 hover:text-cyan-300">Open Media in a new tab</a> to upload one.
+					</p>
+				{/if}
 			</div>
 		{/if}
 	{/if}

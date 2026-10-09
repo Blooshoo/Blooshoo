@@ -24,8 +24,10 @@
 		users?: { id: string; displayName: string }[];
 	} = $props();
 
+	// svelte-ignore state_referenced_locally
+	const initialProject = project;
 	let linksJson = $state(
-		project?.links?.length ? JSON.stringify(project.links, null, 2) : '[]'
+		initialProject?.links?.length ? JSON.stringify(initialProject.links, null, 2) : '[]'
 	);
 </script>
 
