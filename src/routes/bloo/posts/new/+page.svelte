@@ -1,8 +1,8 @@
 <script lang="ts">
 	import PostForm from '../PostForm.svelte';
-	import type { ActionData } from './$types';
+	import type { ActionData, PageData } from './$types';
 
-	let { form } = $props<{ form: ActionData }>();
+	let { data, form } = $props<{ data: PageData; form: ActionData }>();
 </script>
 
 <svelte:head>
@@ -13,5 +13,5 @@
 	<h1 class="text-2xl font-bold text-slate-100" style="font-family: var(--font-heading)">
 		New post
 	</h1>
-	<PostForm action="?/default" error={form?.error} />
+	<PostForm media={data.media} action="?/default" error={form?.error} />
 </div>

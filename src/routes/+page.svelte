@@ -33,8 +33,9 @@
 				></span>
 			</h1>
 			<p class="max-w-xl text-lg leading-relaxed text-bloo-muted">
-				I build things for the web and occasionally write about it. This is my little corner of the
-				internet — projects, thoughts, and whatever else I find interesting.
+				I enjoy video games, podcasts and nerdy stuff. I also enjoy building stuff for the internet
+				and mods for games and random what nots. Feel free to reach out and say hello, unless
+				you're a spam
 			</p>
 			<div class="flex gap-3 pt-2">
 				<a

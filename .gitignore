@@ -1,23 +1,22 @@
-node_modules
-
-# Output
-.output
-.vercel
-.netlify
-.wrangler
-/.svelte-kit
-/build
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Env
+# Secrets — never commit
 .env
 .env.*
 !.env.example
-!.env.test
 
-# Vite
-vite.config.js.timestamp-*
-vite.config.ts.timestamp-*
+# Dependencies / build output
+node_modules/
+build/
+.svelte-kit/
+*.tsbuildinfo
+
+# Test output
+test-results/
+playwright-report/
+
+# Stale artifacts moved aside (pre-deploy cleanup 2026-08-07)
+.trash-*/
+
+# SQLite leftovers from the old Next.js iteration
+*.db
+*.db-shm
+*.db-wal

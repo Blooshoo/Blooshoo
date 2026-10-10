@@ -1,0 +1,284 @@
+
+<canvas id="skyline" style="display:block;width:100%;background:#0a0a1a;"></canvas>
+<script>
+const canvas = document.getElementById('skyline');
+const ctx = canvas.getContext('2d');
+const W = 900, H = 220;
+canvas.width = W;
+canvas.height = H;
+canvas.style.height = H + 'px';
+
+const GROUND = H - 30;
+const TEAL = '#00f5d4';
+const PINK = '#ff2d78';
+const BLUE = '#00b4ff';
+const PURPLE = '#b044ff';
+const DARK = '#0a0a1a';
+
+let scanlineOffset = 0;
+let glowPulse = 0;
+
+function drawBuilding(x, w, h, color, windows = true) {
+  ctx.fillStyle = '#111128';
+  ctx.fillRect(x, GROUND - h, w, h);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x, GROUND - h, w, h);
+
+  if (windows) {
+    const cols = Math.floor(w / 9);
+    const rows = Math.floor(h / 10);
+    for (let c = 0; c < cols; c++) {
+      for (let r = 0; r < rows; r++) {
+        if (Math.random() < 0.45) {
+          const alpha = 0.4 + Math.random() * 0.5;
+          ctx.fillStyle = color.replace(')', `,${alpha})`).replace('rgb', 'rgba').replace('#', '');
+          const wx = c * 9 + x + 3;
+          const wy = r * 10 + (GROUND - h) + 4;
+          ctx.fillStyle = r % 2 === 0 ? (c % 3 === 0 ? TEAL : BLUE) : PINK;
+          ctx.globalAlpha = 0.25 + Math.sin(glowPulse + c + r) * 0.1;
+          ctx.fillRect(wx, wy, 5, 6);
+          ctx.globalAlpha = 1;
+        }
+      }
+    }
+  }
+}
+
+function drawSpaceNeedle(x) {
+  const base = GROUND;
+  const color = TEAL;
+  const pulse = 0.7 + Math.sin(glowPulse * 1.5) * 0.3;
+
+  ctx.shadowColor = TEAL;
+  ctx.shadowBlur = 12 * pulse;
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.fillStyle = '#111128';
+
+  // Tower legs
+  ctx.beginPath();
+  ctx.moveTo(x - 18, base);
+  ctx.lineTo(x - 3, base - 65);
+  ctx.strokeStyle = color;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x + 18, base);
+  ctx.lineTo(x + 3, base - 65);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x - 10, base);
+  ctx.lineTo(x - 3, base - 65);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x + 10, base);
+  ctx.lineTo(x + 3, base - 65);
+  ctx.stroke();
+
+  // Stem
+  ctx.fillStyle = '#111128';
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.rect(x - 3, base - 130, 6, 65);
+  ctx.fill();
+  ctx.stroke();
+
+  // Saucer
+  ctx.beginPath();
+  ctx.ellipse(x, base - 130, 28, 12, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.ellipse(x, base - 138, 22, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Spire
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(x, base - 138);
+  ctx.lineTo(x, base - 170);
+  ctx.stroke();
+
+  // Tip glow
+  ctx.beginPath();
+  ctx.arc(x, base - 170, 3, 0, Math.PI * 2);
+  ctx.fillStyle = PINK;
+  ctx.shadowColor = PINK;
+  ctx.shadowBlur = 10 * pulse;
+  ctx.fill();
+
+  ctx.shadowBlur = 0;
+}
+
+function drawReflection() {
+  const grad = ctx.createLinearGradient(0, GROUND, 0, H);
+  grad.addColorStop(0, 'rgba(0,245,212,0.07)');
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, GROUND, W, H - GROUND);
+}
+
+function drawGround() {
+  ctx.fillStyle = '#0d0d22';
+  ctx.fillRect(0, GROUND, W, H - GROUND);
+  ctx.strokeStyle = TEAL;
+  ctx.lineWidth = 0.5;
+  ctx.globalAlpha = 0.3;
+  ctx.beginPath();
+  ctx.moveTo(0, GROUND);
+  ctx.lineTo(W, GROUND);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+}
+
+function drawScanlines() {
+  ctx.globalAlpha = 0.04;
+  ctx.fillStyle = '#000';
+  for (let y = (scanlineOffset % 4); y < H; y += 4) {
+    ctx.fillRect(0, y, W, 2);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawNeonGlow(x, y, r, color, intensity) {
+  const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, color.replace(')', `,${intensity})`).replace('#', 'rgba(') );
+  g.addColorStop(1, 'transparent');
+  ctx.fillStyle = g;
+  ctx.fillRect(x - r, y - r, r * 2, r * 2);
+}
+
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function drawSkyGlow() {
+  const pulse = 0.5 + Math.sin(glowPulse * 0.7) * 0.15;
+  const gT = ctx.createRadialGradient(280, GROUND, 0, 280, GROUND, 120);
+  gT.addColorStop(0, hexToRgba(TEAL, 0.1 * pulse));
+  gT.addColorStop(1, 'transparent');
+  ctx.fillStyle = gT;
+  ctx.fillRect(0, 0, W, GROUND);
+
+  const gP = ctx.createRadialGradient(500, GROUND, 0, 500, GROUND, 100);
+  gP.addColorStop(0, hexToRgba(PURPLE, 0.08 * pulse));
+  gP.addColorStop(1, 'transparent');
+  ctx.fillStyle = gP;
+  ctx.fillRect(0, 0, W, GROUND);
+}
+
+// Stars
+const stars = Array.from({length: 60}, () => ({
+  x: Math.random() * W,
+  y: Math.random() * (GROUND - 40),
+  r: Math.random() * 1.2,
+  phase: Math.random() * Math.PI * 2
+}));
+
+function drawStars() {
+  stars.forEach(s => {
+    const a = 0.3 + Math.sin(glowPulse * 0.5 + s.phase) * 0.25;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255,${a})`;
+    ctx.fill();
+  });
+}
+
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = DARK;
+  ctx.fillRect(0, 0, W, H);
+
+  drawStars();
+  drawSkyGlow();
+
+  // === LEFT CLUSTER ===
+  drawBuilding(20, 30, 55, BLUE);
+  drawBuilding(52, 22, 44, TEAL);
+  drawBuilding(76, 28, 65, PURPLE);
+  drawBuilding(106, 18, 40, BLUE);
+  drawBuilding(126, 32, 75, TEAL);
+  drawBuilding(160, 20, 50, PINK);
+  drawBuilding(182, 26, 60, BLUE);
+
+  // === Space Needle area ===
+  drawBuilding(216, 28, 50, TEAL);
+  drawSpaceNeedle(280);
+  drawBuilding(318, 30, 62, PURPLE);
+  drawBuilding(350, 20, 42, TEAL);
+
+  // === CENTER CLUSTER ===
+  drawBuilding(372, 36, 95, BLUE);
+  drawBuilding(410, 24, 78, TEAL);
+  drawBuilding(436, 30, 85, PURPLE);
+  drawBuilding(468, 20, 60, PINK);
+  drawBuilding(490, 28, 70, BLUE);
+  drawBuilding(520, 18, 50, TEAL);
+  drawBuilding(540, 24, 42, PURPLE);
+  drawBuilding(566, 30, 55, PINK);
+
+  // === Stadium dome ===
+  ctx.fillStyle = '#111128';
+  ctx.strokeStyle = PURPLE;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.ellipse(620, GROUND, 40, 25, 0, Math.PI, 0);
+  ctx.fill();
+  ctx.stroke();
+  ctx.shadowColor = PURPLE;
+  ctx.shadowBlur = 6;
+  ctx.beginPath();
+  ctx.ellipse(620, GROUND, 40, 25, 0, Math.PI, 0);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Small arches in stadium
+  for (let i = 0; i < 4; i++) {
+    const ax = 594 + i * 18;
+    ctx.beginPath();
+    ctx.ellipse(ax, GROUND, 7, 12, 0, Math.PI, 0);
+    ctx.strokeStyle = hexToRgba(TEAL, 0.6);
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+  }
+
+  // === RIGHT CLUSTER ===
+  drawBuilding(668, 26, 52, BLUE);
+  drawBuilding(696, 18, 38, PINK);
+  drawBuilding(716, 22, 44, TEAL);
+  drawBuilding(740, 28, 60, PURPLE);
+  drawBuilding(770, 16, 35, BLUE);
+  drawBuilding(788, 22, 48, TEAL);
+  drawBuilding(812, 26, 42, PINK);
+  drawBuilding(840, 18, 32, BLUE);
+  drawBuilding(860, 20, 38, PURPLE);
+
+  drawGround();
+  drawReflection();
+  drawScanlines();
+
+  // Neon horizon line glow
+  ctx.save();
+  const horizGrad = ctx.createLinearGradient(0, GROUND - 2, 0, GROUND + 4);
+  horizGrad.addColorStop(0, hexToRgba(TEAL, 0.4));
+  horizGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = horizGrad;
+  ctx.fillRect(0, GROUND - 2, W, 6);
+  ctx.restore();
+}
+
+function animate() {
+  glowPulse += 0.02;
+  scanlineOffset += 0.5;
+  draw();
+  requestAnimationFrame(animate);
+}
+animate();
+</script>

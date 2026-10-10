@@ -27,6 +27,14 @@ import {
   createNeuralNet, updateNeuralNet, drawNeuralNet,
   type NeuralNetState,
 } from '$lib/scenes/neural-scene';
+import {
+  createRainstorm, updateRainstorm, drawRainstorm,
+  type RainstormState,
+} from '$lib/scenes/rainstorm-scene';
+import {
+  createSeattle, updateSeattle, drawSeattle,
+  type SeattleState,
+} from '$lib/scenes/seattle-scene';
 
 // ---- Types ----
 
@@ -47,7 +55,9 @@ type SceneMode =
   | "globe"
   | "aurora"
   | "synthwave"
-  | "neural";
+  | "neural"
+  | "rainstorm"
+  | "seattle";
 interface Scene {
   name: string;
   mode: SceneMode;
@@ -330,10 +340,10 @@ const STAR_MAP: LineSegment[] = [];
 const DRAW_SCENES: Scene[] = [
   {
     name: "seattle",
-    mode: "draw",
-    color: "#00ffcc",
-    speed: 160,
-    lines: SEATTLE_SKYLINE,
+    mode: "seattle",
+    color: "#00f5d4",
+    speed: 0,
+    lines: [],
   },
   {
     name: "brick",
@@ -517,6 +527,13 @@ if (!ctxTop) return;
         speed: 0,
         lines: [],
       },
+      {
+        name: "rainstorm",
+        mode: "rainstorm",
+        color: "#88bbdd",
+        speed: 0,
+        lines: [],
+      },
     ];
     let scene = allScenes[Math.floor(Math.random() * allScenes.length)];
 
@@ -575,6 +592,12 @@ if (!ctxTop) return;
 
     // ---- Neural Network state ----
     let neuralNetState: NeuralNetState | null = null;
+
+    // ---- Rainstorm state ----
+    let rainstormState: RainstormState | null = null;
+
+    // ---- Seattle state ----
+    let seattleState: SeattleState | null = null;
 
     // ---- Aquarium state ----
     const neonBlades: NeonBlade[] = [];
@@ -646,6 +669,9 @@ if (!ctxTop) return;
       }
       if (scene.mode === "neural" && neuralNetState) {
         neuralNetState = createNeuralNet(w, h);
+      }
+      if (scene.mode === "rainstorm" && rainstormState) {
+        rainstormState = createRainstorm(w, h);
       }
     }
 
@@ -1829,6 +1855,22 @@ if (!ctxTop) return;
         return;
       }
 
+      if (scene.mode === "rainstorm" && rainstormState) {
+        rainstormState.w = w;
+        rainstormState.h = h;
+        updateRainstorm(rainstormState, dt);
+        drawRainstorm(rainstormState, ctx!);
+        return;
+      }
+
+      if (scene.mode === "seattle" && seattleState) {
+        seattleState.w = w;
+        seattleState.h = h;
+        updateSeattle(seattleState, dt);
+        drawSeattle(seattleState, ctx!);
+        return;
+      }
+
       if (scene.mode === "aquarium") {
         const tSec = time / 1000;
         updateAquarium(dt, tSec);
@@ -1941,6 +1983,8 @@ if (!ctxTop) return;
     if (scene.mode === "aurora") auroraState = createAurora(w, h);
     if (scene.mode === "synthwave") synthwaveState = createSynthwave(w, h);
     if (scene.mode === "neural") neuralNetState = createNeuralNet(w, h);
+    if (scene.mode === "rainstorm") rainstormState = createRainstorm(w, h);
+    if (scene.mode === "seattle") seattleState = createSeattle(w, h);
     if (scene.mode === "aquarium") initAquarium();
 
     // ---- Scene picker event handling ----
@@ -1973,6 +2017,7 @@ if (!ctxTop) return;
       wakePoints.length = 0;
       sparks.length = 0;
       droplets.length = 0;
+      ctxTop!.clearRect(0, 0, w, h);
       // Null out all scene states
       revengeState = null;
       neonFieldState = null;
@@ -1981,6 +2026,8 @@ if (!ctxTop) return;
       auroraState = null;
       synthwaveState = null;
       neuralNetState = null;
+      rainstormState = null;
+      seattleState = null;
       // Init the selected scene
       if (found.mode === "revenge") revengeState = createRevengeScene(w, h);
       if (found.mode === "neonField") neonFieldState = createNeonField(w, h);
@@ -1989,6 +2036,8 @@ if (!ctxTop) return;
       if (found.mode === "aurora") auroraState = createAurora(w, h);
       if (found.mode === "synthwave") synthwaveState = createSynthwave(w, h);
       if (found.mode === "neural") neuralNetState = createNeuralNet(w, h);
+      if (found.mode === "rainstorm") rainstormState = createRainstorm(w, h);
+      if (found.mode === "seattle") seattleState = createSeattle(w, h);
       if (found.mode === "aquarium") initAquarium();
       respondWithScenes();
     }

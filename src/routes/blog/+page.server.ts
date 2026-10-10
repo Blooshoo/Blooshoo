@@ -1,5 +1,6 @@
 import { db } from '$lib/server/db';
 import { posts } from '$lib/server/db/schema';
+import { parsePostTags } from '$lib/server/post-utils';
 import { eq, desc } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 
@@ -11,6 +12,6 @@ export const load: PageServerLoad = async () => {
 		.orderBy(desc(posts.createdAt));
 
 	return {
-		posts: allPosts.map((p) => ({ ...p, tags: JSON.parse(p.tags) as string[] }))
+		posts: allPosts.map((p) => ({ ...p, tags: parsePostTags(p.tags) }))
 	};
 };

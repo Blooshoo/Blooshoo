@@ -8,7 +8,12 @@
 		{ label: 'Draft posts', value: data.stats.draftPosts, href: '/bloo/posts' },
 		{ label: 'Projects', value: data.stats.projects, href: '/bloo/projects' },
 		{ label: 'Media files', value: data.stats.media, href: '/bloo/media' },
-		{ label: 'Unread messages', value: data.stats.unreadMessages, href: '/bloo/messages' }
+		{ label: 'Unread messages', value: data.stats.unreadMessages, href: '/bloo/messages' },
+		{
+			label: 'Bot attempt counter',
+			value: String(data.stats.botAttempts).padStart(3, '0'),
+			href: '/bloo/messages'
+		}
 	]);
 </script>
 
@@ -24,7 +29,7 @@
 		<p class="mt-1 text-sm text-slate-400">Welcome back.</p>
 	</div>
 
-	<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+	<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
 		{#each statItems as stat (stat.label)}
 			<a
 				href={stat.href}

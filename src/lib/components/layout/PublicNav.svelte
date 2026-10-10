@@ -35,8 +35,10 @@
 
 		<!-- Mobile hamburger -->
 		<button
-			class="btn-ghost px-2 py-1.5 sm:hidden"
-			aria-label="Open navigation"
+			class="btn-ghost min-h-10 min-w-10 justify-center px-2 py-1.5 sm:hidden"
+			aria-label={menuOpen ? 'Close navigation' : 'Open navigation'}
+			aria-expanded={menuOpen}
+			aria-controls="mobile-navigation"
 			onclick={() => (menuOpen = !menuOpen)}
 		>
 			<!-- eslint-disable-next-line svelte/no-at-html-tags -->
@@ -46,7 +48,7 @@
 
 	<!-- Mobile menu -->
 	{#if menuOpen}
-		<nav class="border-t border-white/8 px-4 py-3 sm:hidden">
+		<nav id="mobile-navigation" aria-label="Mobile navigation" class="border-t border-white/8 px-4 py-3 sm:hidden">
 			<div class="flex flex-col gap-1">
 				{#each navLinks as { href, label } (href)}
 					<a

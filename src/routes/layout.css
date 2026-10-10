@@ -145,6 +145,16 @@ body {
 		background: rgb(255 68 102 / 0.2);
 	}
 
+	/* Keep keyboard focus visible after the component buttons remove the browser default. */
+	a:focus-visible,
+	button:focus-visible,
+	input:focus-visible,
+	textarea:focus-visible,
+	select:focus-visible {
+		outline: 2px solid #00ffcc;
+		outline-offset: 3px;
+	}
+
 	/* Nav bracket hover effect */
 	.nav-link {
 		position: relative;
