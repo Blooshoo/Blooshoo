@@ -14,7 +14,10 @@
 </script>
 
 {#if !isAdmin}
-	<CanvasBackground />
+	<!-- Error pages paint their own status-specific scene; don't run two. -->
+	{#if !$page.error}
+		<CanvasBackground />
+	{/if}
 	<PublicNav />
 {/if}
 

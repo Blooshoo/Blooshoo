@@ -1,5 +1,6 @@
 import { db } from '$lib/server/db';
 import { projects } from '$lib/server/db/schema';
+import { parseProjectLinks } from '$lib/server/project-utils';
 import { asc } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 
@@ -8,7 +9,7 @@ export const load: PageServerLoad = async () => {
 	return {
 		projects: allProjects.map((p) => ({
 			...p,
-			links: JSON.parse(p.links) as { label: string; url: string }[]
+			links: parseProjectLinks(p.links)
 		}))
 	};
 };
