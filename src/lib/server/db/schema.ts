@@ -103,7 +103,7 @@ export const projects = pgTable("projects", {
   }).notNull(),
   links: text("links").notNull().default("[]"),
   image: text("image"),
-  ownerType: text("owner_type", { enum: ["mine", "friend"] as const }).notNull(),
+  ownerType: text("owner_type", { enum: ["mine", "friend", "collab"] as const }).notNull(),
   ownerName: text("owner_name"),
   ownerId: text("owner_id"),
   featured: boolean("featured").notNull().default(false),

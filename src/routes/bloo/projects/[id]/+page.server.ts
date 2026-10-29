@@ -1,6 +1,7 @@
 import { redirect, fail, error } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { projects, users } from '$lib/server/db/schema';
+import { parseProjectForm, parseProjectLinks } from '$lib/server/project-utils';
 import { eq } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -13,7 +14,7 @@ export const load: PageServerLoad = async ({ params }) => {
 	return {
 		project: {
 			...project,
-			links: JSON.parse(project.links) as { label: string; url: string }[]
+			links: parseProjectLinks(project.links)
 		},
 		users: allUsers
 	};
@@ -23,31 +24,12 @@ export const actions: Actions = {
 	update: async ({ request, locals, params }) => {
 		if (!locals.user) redirect(302, '/bloo/login');
 
-		const data = await request.formData();
-		const title = (data.get('title') as string)?.trim();
-		const description = (data.get('description') as string)?.trim() ?? '';
-		const categoryRaw = (data.get('category') as string)?.trim() ?? 'other';
-		const ownerTypeRaw = (data.get('ownerType') as string) ?? 'mine';
-		const category = categoryRaw as 'website' | 'game' | 'mod' | 'other';
-		const ownerType = ownerTypeRaw as 'mine' | 'friend';
-		const ownerId = (data.get('ownerId') as string)?.trim() || locals.user.id;
-		const image = (data.get('image') as string)?.trim() ?? '';
-		const linksRaw = (data.get('links') as string)?.trim() ?? '[]';
-		const featured = data.get('featured') === 'true';
-		const sortOrder = Number.parseInt(data.get('sortOrder') as string) || 0;
-
-		if (!title) return fail(400, { error: 'Title is required' });
-
-		let links = '[]';
-		try {
-			links = JSON.stringify(JSON.parse(linksRaw));
-		} catch {
-			return fail(400, { error: 'Links must be valid JSON' });
-		}
+		const parsed = parseProjectForm(await request.formData(), locals.user.id);
+		if (!parsed.ok) return fail(400, { error: parsed.error });
 
 		await db
 			.update(projects)
-			.set({ title, description, category, ownerType, ownerId, image, links, featured, sortOrder, updatedAt: new Date() })
+			.set({ ...parsed.values, updatedAt: new Date() })
 			.where(eq(projects.id, Number(params.id)));
 
 		return { success: true };

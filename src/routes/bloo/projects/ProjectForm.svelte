@@ -26,6 +26,18 @@
 
 	// svelte-ignore state_referenced_locally
 	const initialProject = project;
+	const categories = [
+		{ value: 'website', label: 'Website' },
+		{ value: 'game', label: 'Game' },
+		{ value: 'mod', label: 'Mod' },
+		{ value: 'other', label: 'Other' }
+	];
+	// Older projects were saved from a free-text field, so their category may
+	// not be one of the options. Surface it instead of silently picking one.
+	const knownCategory = categories.some((c) => c.value === initialProject?.category);
+	const legacyCategory = initialProject?.category && !knownCategory ? initialProject.category : '';
+	const initialCategory = initialProject ? (knownCategory ? initialProject.category : '') : 'website';
+
 	let linksJson = $state(
 		initialProject?.links?.length ? JSON.stringify(initialProject.links, null, 2) : '[]'
 	);
@@ -57,14 +69,16 @@
 
 		<div class="space-y-2">
 			<label class="label-caps" for="category">Category</label>
-			<input
-				id="category"
-				name="category"
-				type="text"
-				class="input-dark"
-				value={project?.category ?? ''}
-				placeholder="e.g. Web, Game, Tool"
-			/>
+			<select id="category" name="category" required class="input-dark" value={initialCategory}>
+				{#if initialCategory === ''}
+					<option value="" disabled>
+						{legacyCategory ? `Pick a category (was: ${legacyCategory})` : 'Pick a category'}
+					</option>
+				{/if}
+				{#each categories as category (category.value)}
+					<option value={category.value}>{category.label}</option>
+				{/each}
+			</select>
 		</div>
 	</div>
 
@@ -121,8 +135,12 @@
 			rows="4"
 			class="input-dark resize-none font-mono text-xs"
 			bind:value={linksJson}
-			placeholder="Array of link objects with label and url fields"
+			placeholder={'[{ "label": "Play it", "url": "https://example.com" }]'}
 		></textarea>
+		<p class="text-xs text-slate-500">
+			A JSON array of objects with only <code>label</code> and <code>url</code>. Urls must start
+			with http://, https://, or mailto:.
+		</p>
 	</div>
 
 	<div class="grid gap-4 sm:grid-cols-2">

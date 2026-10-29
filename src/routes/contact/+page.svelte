@@ -3,6 +3,9 @@
 	import type { ActionData, PageData } from './$types';
 
 	let { data, form } = $props<{ data: PageData; form: ActionData }>();
+
+	// A failed submit burns the old token and returns a fresh challenge.
+	const challenge = $derived(form?.challenge ?? data.challenge);
 </script>
 
 <svelte:head>
@@ -60,9 +63,8 @@
 					/>
 				</div>
 
-				<!-- Hidden math numbers -->
-				<input type="hidden" name="num1" value={data.num1} />
-				<input type="hidden" name="num2" value={data.num2} />
+				<!-- Signed, single-use math challenge token -->
+				<input type="hidden" name="challenge" value={challenge.token} />
 
 				<div class="space-y-2">
 					<label class="label-caps" for="name">Name</label>
@@ -104,7 +106,7 @@
 
 				<div class="space-y-2">
 					<label class="label-caps" for="answer">
-						Quick check: what is {data.num1} + {data.num2}?
+						Quick check: what is {challenge.num1} + {challenge.num2}?
 					</label>
 					<input
 						id="answer"

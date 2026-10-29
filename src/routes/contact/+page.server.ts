@@ -3,6 +3,11 @@ import { db } from "$lib/server/db";
 import { messages } from "$lib/server/db/schema";
 import { recordBotAttempt } from "$lib/server/bot-counter";
 import { check as rateLimit } from "$lib/server/rate-limit";
+import {
+  createContactChallenge,
+  verifyContactChallenge,
+} from "$lib/server/contact-challenge";
+import { requireEnv } from "$lib/server/env";
 import { z } from "zod";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -10,16 +15,27 @@ const contactSchema = z.object({
   name: z.string().min(1).max(100),
   email: z.string().email(),
   message: z.string().min(1).max(5000),
-  num1: z.coerce.number(),
-  num2: z.coerce.number(),
-  answer: z.coerce.number(),
+  challenge: z.string().min(1).max(500),
+  answer: z.coerce.number().int(),
 });
 
+const challengeErrors = {
+  invalid: "The math check was tampered with or is malformed. Please try again.",
+  expired: "The math check expired. Here's a fresh one.",
+  used: "That math check was already used. Here's a fresh one.",
+  wrong: "Incorrect math challenge answer",
+} as const;
+
+// AUTH_SECRET is already required (and length-checked) at boot by auth.ts.
+const secret = () => requireEnv("AUTH_SECRET");
+
+// Failed submissions get a fresh challenge: the old token is single-use.
+function failWithChallenge(status: number, error: string) {
+  return fail(status, { error, challenge: createContactChallenge(secret()) });
+}
+
 export const load: PageServerLoad = async () => {
-  // Generate server-side math challenge numbers
-  const num1 = Math.floor(Math.random() * 10) + 1;
-  const num2 = Math.floor(Math.random() * 10) + 1;
-  return { num1, num2 };
+  return { challenge: createContactChallenge(secret()) };
 };
 
 export const actions: Actions = {
@@ -27,7 +43,7 @@ export const actions: Actions = {
     const ip = getClientAddress();
     const rl = rateLimit({ key: `contact:${ip}`, max: 5, windowSec: 300 });
     if (!rl.allowed) {
-      return fail(429, { error: "Too many messages. Please try again later." });
+      return failWithChallenge(429, "Too many messages. Please try again later.");
     }
     const data = await request.formData();
 
@@ -48,20 +64,19 @@ export const actions: Actions = {
       name: data.get("name"),
       email: data.get("email"),
       message: data.get("message"),
-      num1: data.get("num1"),
-      num2: data.get("num2"),
+      challenge: data.get("challenge"),
       answer: data.get("answer"),
     });
 
     if (!result.success) {
-      return fail(400, { error: result.error.issues[0].message });
+      return failWithChallenge(400, result.error.issues[0].message);
     }
 
-    const { name, email, message, num1, num2, answer } = result.data;
+    const { name, email, message, challenge, answer } = result.data;
 
-    // Math challenge check
-    if (num1 + num2 !== answer) {
-      return fail(400, { error: "Incorrect math challenge answer" });
+    const verdict = verifyContactChallenge(challenge, answer, secret());
+    if (!verdict.ok) {
+      return failWithChallenge(400, challengeErrors[verdict.reason]);
     }
 
     await db.insert(messages).values({ name, email, message });

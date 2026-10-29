@@ -1,6 +1,8 @@
 import { db } from '$lib/server/db';
 import { posts, projects } from '$lib/server/db/schema';
-import { eq, desc, and, asc } from 'drizzle-orm';
+import { parsePostTags } from '$lib/server/post-utils';
+import { parseProjectLinks } from '$lib/server/project-utils';
+import { eq, desc, and, asc, inArray } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {
@@ -14,15 +16,15 @@ export const load: PageServerLoad = async () => {
 		db
 			.select()
 			.from(projects)
-			.where(and(eq(projects.featured, true), eq(projects.ownerType, 'mine')))
+			.where(and(eq(projects.featured, true), inArray(projects.ownerType, ['mine', 'collab'])))
 			.orderBy(asc(projects.sortOrder))
 	]);
 
 	return {
-		latestPosts: latestPosts.map((p) => ({ ...p, tags: JSON.parse(p.tags) as string[] })),
+		latestPosts: latestPosts.map((p) => ({ ...p, tags: parsePostTags(p.tags) })),
 		featuredProjects: featuredProjects.map((p) => ({
 			...p,
-			links: JSON.parse(p.links) as { label: string; url: string }[]
+			links: parseProjectLinks(p.links)
 		}))
 	};
 };
